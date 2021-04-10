@@ -15,6 +15,7 @@ import dominio.User;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
 import negocio.exceptions.NonexistentEntityException;
 import negocio.exceptions.PreexistingEntityException;
 
@@ -27,6 +28,11 @@ public class TurnJpaController implements Serializable {
     public TurnJpaController(EntityManagerFactory emf) {
         this.emf = emf;
     }
+
+    public TurnJpaController() {
+        this.emf = Persistence.createEntityManagerFactory("stomcPU");
+    }
+    
     private EntityManagerFactory emf = null;
 
     public EntityManager getEntityManager() {

@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
 import negocio.exceptions.NonexistentEntityException;
 
 /**
@@ -29,6 +30,11 @@ public class UserJpaController implements Serializable {
     public UserJpaController(EntityManagerFactory emf) {
         this.emf = emf;
     }
+
+    public UserJpaController() {
+        this.emf = Persistence.createEntityManagerFactory("stomcPU");
+    }
+    
     private EntityManagerFactory emf = null;
 
     public EntityManager getEntityManager() {

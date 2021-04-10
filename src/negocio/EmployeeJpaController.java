@@ -17,6 +17,7 @@ import dominio.Employee;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
 import negocio.exceptions.NonexistentEntityException;
 
 /**
@@ -28,6 +29,11 @@ public class EmployeeJpaController implements Serializable {
     public EmployeeJpaController(EntityManagerFactory emf) {
         this.emf = emf;
     }
+
+    public EmployeeJpaController() {
+        this.emf = Persistence.createEntityManagerFactory("stomcPU");
+    }
+    
     private EntityManagerFactory emf = null;
 
     public EntityManager getEntityManager() {
