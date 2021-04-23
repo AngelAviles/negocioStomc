@@ -12,11 +12,9 @@ import javax.persistence.EntityNotFoundException;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import dominio.Employee;
-import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
 import negocio.exceptions.NonexistentEntityException;
 
 /**
@@ -28,11 +26,6 @@ public class BranchJpaController implements Serializable {
     public BranchJpaController(EntityManagerFactory emf) {
         this.emf = emf;
     }
-
-    public BranchJpaController() {
-        this.emf = Persistence.createEntityManagerFactory("stomcPU");
-    }
-    
     private EntityManagerFactory emf = null;
 
     public EntityManager getEntityManager() {
@@ -40,28 +33,24 @@ public class BranchJpaController implements Serializable {
     }
 
     public void create(Branch branch) {
-        if (branch.getEmployeeList() == null) {
-            branch.setEmployeeList(new ArrayList<Employee>());
-        }
         EntityManager em = null;
         try {
             em = getEntityManager();
             em.getTransaction().begin();
-            List<Employee> attachedEmployeeList = new ArrayList<Employee>();
-            for (Employee employeeListEmployeeToAttach : branch.getEmployeeList()) {
-                employeeListEmployeeToAttach = em.getReference(employeeListEmployeeToAttach.getClass(), employeeListEmployeeToAttach.getId());
-                attachedEmployeeList.add(employeeListEmployeeToAttach);
+            Employee employee = branch.getEmployee();
+            if (employee != null) {
+                employee = em.getReference(employee.getClass(), employee.getId());
+                branch.setEmployee(employee);
             }
-            branch.setEmployeeList(attachedEmployeeList);
             em.persist(branch);
-            for (Employee employeeListEmployee : branch.getEmployeeList()) {
-                Branch oldIdBranchOfEmployeeListEmployee = employeeListEmployee.getIdBranch();
-                employeeListEmployee.setIdBranch(branch);
-                employeeListEmployee = em.merge(employeeListEmployee);
-                if (oldIdBranchOfEmployeeListEmployee != null) {
-                    oldIdBranchOfEmployeeListEmployee.getEmployeeList().remove(employeeListEmployee);
-                    oldIdBranchOfEmployeeListEmployee = em.merge(oldIdBranchOfEmployeeListEmployee);
+            if (employee != null) {
+                Branch oldIdBranchOfEmployee = employee.getIdBranch();
+                if (oldIdBranchOfEmployee != null) {
+                    oldIdBranchOfEmployee.setEmployee(null);
+                    oldIdBranchOfEmployee = em.merge(oldIdBranchOfEmployee);
                 }
+                employee.setIdBranch(branch);
+                employee = em.merge(employee);
             }
             em.getTransaction().commit();
         } finally {
@@ -77,32 +66,25 @@ public class BranchJpaController implements Serializable {
             em = getEntityManager();
             em.getTransaction().begin();
             Branch persistentBranch = em.find(Branch.class, branch.getId());
-            List<Employee> employeeListOld = persistentBranch.getEmployeeList();
-            List<Employee> employeeListNew = branch.getEmployeeList();
-            List<Employee> attachedEmployeeListNew = new ArrayList<Employee>();
-            for (Employee employeeListNewEmployeeToAttach : employeeListNew) {
-                employeeListNewEmployeeToAttach = em.getReference(employeeListNewEmployeeToAttach.getClass(), employeeListNewEmployeeToAttach.getId());
-                attachedEmployeeListNew.add(employeeListNewEmployeeToAttach);
+            Employee employeeOld = persistentBranch.getEmployee();
+            Employee employeeNew = branch.getEmployee();
+            if (employeeNew != null) {
+                employeeNew = em.getReference(employeeNew.getClass(), employeeNew.getId());
+                branch.setEmployee(employeeNew);
             }
-            employeeListNew = attachedEmployeeListNew;
-            branch.setEmployeeList(employeeListNew);
             branch = em.merge(branch);
-            for (Employee employeeListOldEmployee : employeeListOld) {
-                if (!employeeListNew.contains(employeeListOldEmployee)) {
-                    employeeListOldEmployee.setIdBranch(null);
-                    employeeListOldEmployee = em.merge(employeeListOldEmployee);
-                }
+            if (employeeOld != null && !employeeOld.equals(employeeNew)) {
+                employeeOld.setIdBranch(null);
+                employeeOld = em.merge(employeeOld);
             }
-            for (Employee employeeListNewEmployee : employeeListNew) {
-                if (!employeeListOld.contains(employeeListNewEmployee)) {
-                    Branch oldIdBranchOfEmployeeListNewEmployee = employeeListNewEmployee.getIdBranch();
-                    employeeListNewEmployee.setIdBranch(branch);
-                    employeeListNewEmployee = em.merge(employeeListNewEmployee);
-                    if (oldIdBranchOfEmployeeListNewEmployee != null && !oldIdBranchOfEmployeeListNewEmployee.equals(branch)) {
-                        oldIdBranchOfEmployeeListNewEmployee.getEmployeeList().remove(employeeListNewEmployee);
-                        oldIdBranchOfEmployeeListNewEmployee = em.merge(oldIdBranchOfEmployeeListNewEmployee);
-                    }
+            if (employeeNew != null && !employeeNew.equals(employeeOld)) {
+                Branch oldIdBranchOfEmployee = employeeNew.getIdBranch();
+                if (oldIdBranchOfEmployee != null) {
+                    oldIdBranchOfEmployee.setEmployee(null);
+                    oldIdBranchOfEmployee = em.merge(oldIdBranchOfEmployee);
                 }
+                employeeNew.setIdBranch(branch);
+                employeeNew = em.merge(employeeNew);
             }
             em.getTransaction().commit();
         } catch (Exception ex) {
@@ -133,10 +115,10 @@ public class BranchJpaController implements Serializable {
             } catch (EntityNotFoundException enfe) {
                 throw new NonexistentEntityException("The branch with id " + id + " no longer exists.", enfe);
             }
-            List<Employee> employeeList = branch.getEmployeeList();
-            for (Employee employeeListEmployee : employeeList) {
-                employeeListEmployee.setIdBranch(null);
-                employeeListEmployee = em.merge(employeeListEmployee);
+            Employee employee = branch.getEmployee();
+            if (employee != null) {
+                employee.setIdBranch(null);
+                employee = em.merge(employee);
             }
             em.remove(branch);
             em.getTransaction().commit();

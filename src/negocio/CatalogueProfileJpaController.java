@@ -5,7 +5,7 @@
  */
 package negocio;
 
-import dominio.ReportingLog;
+import dominio.CatalogueProfile;
 import java.io.Serializable;
 import java.util.List;
 import javax.persistence.EntityManager;
@@ -20,9 +20,9 @@ import negocio.exceptions.NonexistentEntityException;
  *
  * @author angel
  */
-public class ReportingLogJpaController implements Serializable {
+public class CatalogueProfileJpaController implements Serializable {
 
-    public ReportingLogJpaController(EntityManagerFactory emf) {
+    public CatalogueProfileJpaController(EntityManagerFactory emf) {
         this.emf = emf;
     }
     private EntityManagerFactory emf = null;
@@ -31,12 +31,12 @@ public class ReportingLogJpaController implements Serializable {
         return emf.createEntityManager();
     }
 
-    public void create(ReportingLog reportingLog) {
+    public void create(CatalogueProfile catalogueProfile) {
         EntityManager em = null;
         try {
             em = getEntityManager();
             em.getTransaction().begin();
-            em.persist(reportingLog);
+            em.persist(catalogueProfile);
             em.getTransaction().commit();
         } finally {
             if (em != null) {
@@ -45,19 +45,19 @@ public class ReportingLogJpaController implements Serializable {
         }
     }
 
-    public void edit(ReportingLog reportingLog) throws NonexistentEntityException, Exception {
+    public void edit(CatalogueProfile catalogueProfile) throws NonexistentEntityException, Exception {
         EntityManager em = null;
         try {
             em = getEntityManager();
             em.getTransaction().begin();
-            reportingLog = em.merge(reportingLog);
+            catalogueProfile = em.merge(catalogueProfile);
             em.getTransaction().commit();
         } catch (Exception ex) {
             String msg = ex.getLocalizedMessage();
             if (msg == null || msg.length() == 0) {
-                Long id = reportingLog.getId();
-                if (findReportingLog(id) == null) {
-                    throw new NonexistentEntityException("The reportingLog with id " + id + " no longer exists.");
+                Long id = catalogueProfile.getId();
+                if (findCatalogueProfile(id) == null) {
+                    throw new NonexistentEntityException("The catalogueProfile with id " + id + " no longer exists.");
                 }
             }
             throw ex;
@@ -73,14 +73,14 @@ public class ReportingLogJpaController implements Serializable {
         try {
             em = getEntityManager();
             em.getTransaction().begin();
-            ReportingLog reportingLog;
+            CatalogueProfile catalogueProfile;
             try {
-                reportingLog = em.getReference(ReportingLog.class, id);
-                reportingLog.getId();
+                catalogueProfile = em.getReference(CatalogueProfile.class, id);
+                catalogueProfile.getId();
             } catch (EntityNotFoundException enfe) {
-                throw new NonexistentEntityException("The reportingLog with id " + id + " no longer exists.", enfe);
+                throw new NonexistentEntityException("The catalogueProfile with id " + id + " no longer exists.", enfe);
             }
-            em.remove(reportingLog);
+            em.remove(catalogueProfile);
             em.getTransaction().commit();
         } finally {
             if (em != null) {
@@ -89,19 +89,19 @@ public class ReportingLogJpaController implements Serializable {
         }
     }
 
-    public List<ReportingLog> findReportingLogEntities() {
-        return findReportingLogEntities(true, -1, -1);
+    public List<CatalogueProfile> findCatalogueProfileEntities() {
+        return findCatalogueProfileEntities(true, -1, -1);
     }
 
-    public List<ReportingLog> findReportingLogEntities(int maxResults, int firstResult) {
-        return findReportingLogEntities(false, maxResults, firstResult);
+    public List<CatalogueProfile> findCatalogueProfileEntities(int maxResults, int firstResult) {
+        return findCatalogueProfileEntities(false, maxResults, firstResult);
     }
 
-    private List<ReportingLog> findReportingLogEntities(boolean all, int maxResults, int firstResult) {
+    private List<CatalogueProfile> findCatalogueProfileEntities(boolean all, int maxResults, int firstResult) {
         EntityManager em = getEntityManager();
         try {
             CriteriaQuery cq = em.getCriteriaBuilder().createQuery();
-            cq.select(cq.from(ReportingLog.class));
+            cq.select(cq.from(CatalogueProfile.class));
             Query q = em.createQuery(cq);
             if (!all) {
                 q.setMaxResults(maxResults);
@@ -113,20 +113,20 @@ public class ReportingLogJpaController implements Serializable {
         }
     }
 
-    public ReportingLog findReportingLog(Long id) {
+    public CatalogueProfile findCatalogueProfile(Long id) {
         EntityManager em = getEntityManager();
         try {
-            return em.find(ReportingLog.class, id);
+            return em.find(CatalogueProfile.class, id);
         } finally {
             em.close();
         }
     }
 
-    public int getReportingLogCount() {
+    public int getCatalogueProfileCount() {
         EntityManager em = getEntityManager();
         try {
             CriteriaQuery cq = em.getCriteriaBuilder().createQuery();
-            Root<ReportingLog> rt = cq.from(ReportingLog.class);
+            Root<CatalogueProfile> rt = cq.from(CatalogueProfile.class);
             cq.select(em.getCriteriaBuilder().count(rt));
             Query q = em.createQuery(cq);
             return ((Long) q.getSingleResult()).intValue();

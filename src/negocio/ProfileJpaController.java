@@ -5,17 +5,16 @@
  */
 package negocio;
 
-import dominio.Profile;
 import java.io.Serializable;
 import javax.persistence.Query;
 import javax.persistence.EntityNotFoundException;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
-import dominio.User;
+import dominio.Employee;
+import dominio.Profile;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
 import negocio.exceptions.NonexistentEntityException;
 
 /**
@@ -27,11 +26,6 @@ public class ProfileJpaController implements Serializable {
     public ProfileJpaController(EntityManagerFactory emf) {
         this.emf = emf;
     }
-
-    public ProfileJpaController() {
-        this.emf = Persistence.createEntityManagerFactory("stomcPU");
-    }
-    
     private EntityManagerFactory emf = null;
 
     public EntityManager getEntityManager() {
@@ -43,20 +37,20 @@ public class ProfileJpaController implements Serializable {
         try {
             em = getEntityManager();
             em.getTransaction().begin();
-            User user = profile.getUser();
-            if (user != null) {
-                user = em.getReference(user.getClass(), user.getId());
-                profile.setUser(user);
+            Employee employee = profile.getEmployee();
+            if (employee != null) {
+                employee = em.getReference(employee.getClass(), employee.getId());
+                profile.setEmployee(employee);
             }
             em.persist(profile);
-            if (user != null) {
-                Profile oldIdProfileOfUser = user.getIdProfile();
-                if (oldIdProfileOfUser != null) {
-                    oldIdProfileOfUser.setUser(null);
-                    oldIdProfileOfUser = em.merge(oldIdProfileOfUser);
+            if (employee != null) {
+                Profile oldIdProfileOfEmployee = employee.getIdProfile();
+                if (oldIdProfileOfEmployee != null) {
+                    oldIdProfileOfEmployee.setEmployee(null);
+                    oldIdProfileOfEmployee = em.merge(oldIdProfileOfEmployee);
                 }
-                user.setIdProfile(profile);
-                user = em.merge(user);
+                employee.setIdProfile(profile);
+                employee = em.merge(employee);
             }
             em.getTransaction().commit();
         } finally {
@@ -72,25 +66,25 @@ public class ProfileJpaController implements Serializable {
             em = getEntityManager();
             em.getTransaction().begin();
             Profile persistentProfile = em.find(Profile.class, profile.getId());
-            User userOld = persistentProfile.getUser();
-            User userNew = profile.getUser();
-            if (userNew != null) {
-                userNew = em.getReference(userNew.getClass(), userNew.getId());
-                profile.setUser(userNew);
+            Employee employeeOld = persistentProfile.getEmployee();
+            Employee employeeNew = profile.getEmployee();
+            if (employeeNew != null) {
+                employeeNew = em.getReference(employeeNew.getClass(), employeeNew.getId());
+                profile.setEmployee(employeeNew);
             }
             profile = em.merge(profile);
-            if (userOld != null && !userOld.equals(userNew)) {
-                userOld.setIdProfile(null);
-                userOld = em.merge(userOld);
+            if (employeeOld != null && !employeeOld.equals(employeeNew)) {
+                employeeOld.setIdProfile(null);
+                employeeOld = em.merge(employeeOld);
             }
-            if (userNew != null && !userNew.equals(userOld)) {
-                Profile oldIdProfileOfUser = userNew.getIdProfile();
-                if (oldIdProfileOfUser != null) {
-                    oldIdProfileOfUser.setUser(null);
-                    oldIdProfileOfUser = em.merge(oldIdProfileOfUser);
+            if (employeeNew != null && !employeeNew.equals(employeeOld)) {
+                Profile oldIdProfileOfEmployee = employeeNew.getIdProfile();
+                if (oldIdProfileOfEmployee != null) {
+                    oldIdProfileOfEmployee.setEmployee(null);
+                    oldIdProfileOfEmployee = em.merge(oldIdProfileOfEmployee);
                 }
-                userNew.setIdProfile(profile);
-                userNew = em.merge(userNew);
+                employeeNew.setIdProfile(profile);
+                employeeNew = em.merge(employeeNew);
             }
             em.getTransaction().commit();
         } catch (Exception ex) {
@@ -121,10 +115,10 @@ public class ProfileJpaController implements Serializable {
             } catch (EntityNotFoundException enfe) {
                 throw new NonexistentEntityException("The profile with id " + id + " no longer exists.", enfe);
             }
-            User user = profile.getUser();
-            if (user != null) {
-                user.setIdProfile(null);
-                user = em.merge(user);
+            Employee employee = profile.getEmployee();
+            if (employee != null) {
+                employee.setIdProfile(null);
+                employee = em.merge(employee);
             }
             em.remove(profile);
             em.getTransaction().commit();

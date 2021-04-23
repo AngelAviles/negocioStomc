@@ -12,11 +12,9 @@ import javax.persistence.EntityNotFoundException;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import dominio.Employee;
-import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
 import negocio.exceptions.NonexistentEntityException;
 
 /**
@@ -28,11 +26,6 @@ public class AttentionPointJpaController implements Serializable {
     public AttentionPointJpaController(EntityManagerFactory emf) {
         this.emf = emf;
     }
-    
-    public AttentionPointJpaController() {
-        this.emf = Persistence.createEntityManagerFactory("stomcPU");
-    }
-    
     private EntityManagerFactory emf = null;
 
     public EntityManager getEntityManager() {
@@ -40,28 +33,24 @@ public class AttentionPointJpaController implements Serializable {
     }
 
     public void create(AttentionPoint attentionPoint) {
-        if (attentionPoint.getEmployeeList() == null) {
-            attentionPoint.setEmployeeList(new ArrayList<Employee>());
-        }
         EntityManager em = null;
         try {
             em = getEntityManager();
             em.getTransaction().begin();
-            List<Employee> attachedEmployeeList = new ArrayList<Employee>();
-            for (Employee employeeListEmployeeToAttach : attentionPoint.getEmployeeList()) {
-                employeeListEmployeeToAttach = em.getReference(employeeListEmployeeToAttach.getClass(), employeeListEmployeeToAttach.getId());
-                attachedEmployeeList.add(employeeListEmployeeToAttach);
+            Employee employee = attentionPoint.getEmployee();
+            if (employee != null) {
+                employee = em.getReference(employee.getClass(), employee.getId());
+                attentionPoint.setEmployee(employee);
             }
-            attentionPoint.setEmployeeList(attachedEmployeeList);
             em.persist(attentionPoint);
-            for (Employee employeeListEmployee : attentionPoint.getEmployeeList()) {
-                AttentionPoint oldIdAttentionPointOfEmployeeListEmployee = employeeListEmployee.getIdAttentionPoint();
-                employeeListEmployee.setIdAttentionPoint(attentionPoint);
-                employeeListEmployee = em.merge(employeeListEmployee);
-                if (oldIdAttentionPointOfEmployeeListEmployee != null) {
-                    oldIdAttentionPointOfEmployeeListEmployee.getEmployeeList().remove(employeeListEmployee);
-                    oldIdAttentionPointOfEmployeeListEmployee = em.merge(oldIdAttentionPointOfEmployeeListEmployee);
+            if (employee != null) {
+                AttentionPoint oldIdAttentionPointOfEmployee = employee.getIdAttentionPoint();
+                if (oldIdAttentionPointOfEmployee != null) {
+                    oldIdAttentionPointOfEmployee.setEmployee(null);
+                    oldIdAttentionPointOfEmployee = em.merge(oldIdAttentionPointOfEmployee);
                 }
+                employee.setIdAttentionPoint(attentionPoint);
+                employee = em.merge(employee);
             }
             em.getTransaction().commit();
         } finally {
@@ -77,32 +66,25 @@ public class AttentionPointJpaController implements Serializable {
             em = getEntityManager();
             em.getTransaction().begin();
             AttentionPoint persistentAttentionPoint = em.find(AttentionPoint.class, attentionPoint.getId());
-            List<Employee> employeeListOld = persistentAttentionPoint.getEmployeeList();
-            List<Employee> employeeListNew = attentionPoint.getEmployeeList();
-            List<Employee> attachedEmployeeListNew = new ArrayList<Employee>();
-            for (Employee employeeListNewEmployeeToAttach : employeeListNew) {
-                employeeListNewEmployeeToAttach = em.getReference(employeeListNewEmployeeToAttach.getClass(), employeeListNewEmployeeToAttach.getId());
-                attachedEmployeeListNew.add(employeeListNewEmployeeToAttach);
+            Employee employeeOld = persistentAttentionPoint.getEmployee();
+            Employee employeeNew = attentionPoint.getEmployee();
+            if (employeeNew != null) {
+                employeeNew = em.getReference(employeeNew.getClass(), employeeNew.getId());
+                attentionPoint.setEmployee(employeeNew);
             }
-            employeeListNew = attachedEmployeeListNew;
-            attentionPoint.setEmployeeList(employeeListNew);
             attentionPoint = em.merge(attentionPoint);
-            for (Employee employeeListOldEmployee : employeeListOld) {
-                if (!employeeListNew.contains(employeeListOldEmployee)) {
-                    employeeListOldEmployee.setIdAttentionPoint(null);
-                    employeeListOldEmployee = em.merge(employeeListOldEmployee);
-                }
+            if (employeeOld != null && !employeeOld.equals(employeeNew)) {
+                employeeOld.setIdAttentionPoint(null);
+                employeeOld = em.merge(employeeOld);
             }
-            for (Employee employeeListNewEmployee : employeeListNew) {
-                if (!employeeListOld.contains(employeeListNewEmployee)) {
-                    AttentionPoint oldIdAttentionPointOfEmployeeListNewEmployee = employeeListNewEmployee.getIdAttentionPoint();
-                    employeeListNewEmployee.setIdAttentionPoint(attentionPoint);
-                    employeeListNewEmployee = em.merge(employeeListNewEmployee);
-                    if (oldIdAttentionPointOfEmployeeListNewEmployee != null && !oldIdAttentionPointOfEmployeeListNewEmployee.equals(attentionPoint)) {
-                        oldIdAttentionPointOfEmployeeListNewEmployee.getEmployeeList().remove(employeeListNewEmployee);
-                        oldIdAttentionPointOfEmployeeListNewEmployee = em.merge(oldIdAttentionPointOfEmployeeListNewEmployee);
-                    }
+            if (employeeNew != null && !employeeNew.equals(employeeOld)) {
+                AttentionPoint oldIdAttentionPointOfEmployee = employeeNew.getIdAttentionPoint();
+                if (oldIdAttentionPointOfEmployee != null) {
+                    oldIdAttentionPointOfEmployee.setEmployee(null);
+                    oldIdAttentionPointOfEmployee = em.merge(oldIdAttentionPointOfEmployee);
                 }
+                employeeNew.setIdAttentionPoint(attentionPoint);
+                employeeNew = em.merge(employeeNew);
             }
             em.getTransaction().commit();
         } catch (Exception ex) {
@@ -133,10 +115,10 @@ public class AttentionPointJpaController implements Serializable {
             } catch (EntityNotFoundException enfe) {
                 throw new NonexistentEntityException("The attentionPoint with id " + id + " no longer exists.", enfe);
             }
-            List<Employee> employeeList = attentionPoint.getEmployeeList();
-            for (Employee employeeListEmployee : employeeList) {
-                employeeListEmployee.setIdAttentionPoint(null);
-                employeeListEmployee = em.merge(employeeListEmployee);
+            Employee employee = attentionPoint.getEmployee();
+            if (employee != null) {
+                employee.setIdAttentionPoint(null);
+                employee = em.merge(employee);
             }
             em.remove(attentionPoint);
             em.getTransaction().commit();

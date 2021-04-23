@@ -5,17 +5,16 @@
  */
 package negocio;
 
-import dominio.Turn;
 import java.io.Serializable;
 import javax.persistence.Query;
 import javax.persistence.EntityNotFoundException;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
-import dominio.User;
+import dominio.Employee;
+import dominio.Turn;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
 import negocio.exceptions.NonexistentEntityException;
 import negocio.exceptions.PreexistingEntityException;
 
@@ -28,11 +27,6 @@ public class TurnJpaController implements Serializable {
     public TurnJpaController(EntityManagerFactory emf) {
         this.emf = emf;
     }
-
-    public TurnJpaController() {
-        this.emf = Persistence.createEntityManagerFactory("stomcPU");
-    }
-    
     private EntityManagerFactory emf = null;
 
     public EntityManager getEntityManager() {
@@ -44,15 +38,15 @@ public class TurnJpaController implements Serializable {
         try {
             em = getEntityManager();
             em.getTransaction().begin();
-            User idUser = turn.getIdUser();
-            if (idUser != null) {
-                idUser = em.getReference(idUser.getClass(), idUser.getId());
-                turn.setIdUser(idUser);
+            Employee idEmployee = turn.getIdEmployee();
+            if (idEmployee != null) {
+                idEmployee = em.getReference(idEmployee.getClass(), idEmployee.getId());
+                turn.setIdEmployee(idEmployee);
             }
             em.persist(turn);
-            if (idUser != null) {
-                idUser.getTurnList().add(turn);
-                idUser = em.merge(idUser);
+            if (idEmployee != null) {
+                idEmployee.getTurnList().add(turn);
+                idEmployee = em.merge(idEmployee);
             }
             em.getTransaction().commit();
         } catch (Exception ex) {
@@ -73,20 +67,20 @@ public class TurnJpaController implements Serializable {
             em = getEntityManager();
             em.getTransaction().begin();
             Turn persistentTurn = em.find(Turn.class, turn.getUuid());
-            User idUserOld = persistentTurn.getIdUser();
-            User idUserNew = turn.getIdUser();
-            if (idUserNew != null) {
-                idUserNew = em.getReference(idUserNew.getClass(), idUserNew.getId());
-                turn.setIdUser(idUserNew);
+            Employee idEmployeeOld = persistentTurn.getIdEmployee();
+            Employee idEmployeeNew = turn.getIdEmployee();
+            if (idEmployeeNew != null) {
+                idEmployeeNew = em.getReference(idEmployeeNew.getClass(), idEmployeeNew.getId());
+                turn.setIdEmployee(idEmployeeNew);
             }
             turn = em.merge(turn);
-            if (idUserOld != null && !idUserOld.equals(idUserNew)) {
-                idUserOld.getTurnList().remove(turn);
-                idUserOld = em.merge(idUserOld);
+            if (idEmployeeOld != null && !idEmployeeOld.equals(idEmployeeNew)) {
+                idEmployeeOld.getTurnList().remove(turn);
+                idEmployeeOld = em.merge(idEmployeeOld);
             }
-            if (idUserNew != null && !idUserNew.equals(idUserOld)) {
-                idUserNew.getTurnList().add(turn);
-                idUserNew = em.merge(idUserNew);
+            if (idEmployeeNew != null && !idEmployeeNew.equals(idEmployeeOld)) {
+                idEmployeeNew.getTurnList().add(turn);
+                idEmployeeNew = em.merge(idEmployeeNew);
             }
             em.getTransaction().commit();
         } catch (Exception ex) {
@@ -117,10 +111,10 @@ public class TurnJpaController implements Serializable {
             } catch (EntityNotFoundException enfe) {
                 throw new NonexistentEntityException("The turn with id " + id + " no longer exists.", enfe);
             }
-            User idUser = turn.getIdUser();
-            if (idUser != null) {
-                idUser.getTurnList().remove(turn);
-                idUser = em.merge(idUser);
+            Employee idEmployee = turn.getIdEmployee();
+            if (idEmployee != null) {
+                idEmployee.getTurnList().remove(turn);
+                idEmployee = em.merge(idEmployee);
             }
             em.remove(turn);
             em.getTransaction().commit();

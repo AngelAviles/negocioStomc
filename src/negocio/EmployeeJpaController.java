@@ -10,14 +10,15 @@ import javax.persistence.Query;
 import javax.persistence.EntityNotFoundException;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
-import dominio.User;
 import dominio.AttentionPoint;
 import dominio.Branch;
 import dominio.Employee;
+import dominio.Profile;
+import dominio.Turn;
+import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
 import negocio.exceptions.NonexistentEntityException;
 
 /**
@@ -29,11 +30,6 @@ public class EmployeeJpaController implements Serializable {
     public EmployeeJpaController(EntityManagerFactory emf) {
         this.emf = emf;
     }
-
-    public EmployeeJpaController() {
-        this.emf = Persistence.createEntityManagerFactory("stomcPU");
-    }
-    
     private EntityManagerFactory emf = null;
 
     public EntityManager getEntityManager() {
@@ -41,15 +37,13 @@ public class EmployeeJpaController implements Serializable {
     }
 
     public void create(Employee employee) {
+        if (employee.getTurnList() == null) {
+            employee.setTurnList(new ArrayList<Turn>());
+        }
         EntityManager em = null;
         try {
             em = getEntityManager();
             em.getTransaction().begin();
-            User user = employee.getUser();
-            if (user != null) {
-                user = em.getReference(user.getClass(), user.getId());
-                employee.setUser(user);
-            }
             AttentionPoint idAttentionPoint = employee.getIdAttentionPoint();
             if (idAttentionPoint != null) {
                 idAttentionPoint = em.getReference(idAttentionPoint.getClass(), idAttentionPoint.getId());
@@ -60,23 +54,53 @@ public class EmployeeJpaController implements Serializable {
                 idBranch = em.getReference(idBranch.getClass(), idBranch.getId());
                 employee.setIdBranch(idBranch);
             }
-            em.persist(employee);
-            if (user != null) {
-                Employee oldIdEmployeeOfUser = user.getIdEmployee();
-                if (oldIdEmployeeOfUser != null) {
-                    oldIdEmployeeOfUser.setUser(null);
-                    oldIdEmployeeOfUser = em.merge(oldIdEmployeeOfUser);
-                }
-                user.setIdEmployee(employee);
-                user = em.merge(user);
+            Profile idProfile = employee.getIdProfile();
+            if (idProfile != null) {
+                idProfile = em.getReference(idProfile.getClass(), idProfile.getId());
+                employee.setIdProfile(idProfile);
             }
+            List<Turn> attachedTurnList = new ArrayList<Turn>();
+            for (Turn turnListTurnToAttach : employee.getTurnList()) {
+                turnListTurnToAttach = em.getReference(turnListTurnToAttach.getClass(), turnListTurnToAttach.getUuid());
+                attachedTurnList.add(turnListTurnToAttach);
+            }
+            employee.setTurnList(attachedTurnList);
+            em.persist(employee);
             if (idAttentionPoint != null) {
-                idAttentionPoint.getEmployeeList().add(employee);
+                Employee oldEmployeeOfIdAttentionPoint = idAttentionPoint.getEmployee();
+                if (oldEmployeeOfIdAttentionPoint != null) {
+                    oldEmployeeOfIdAttentionPoint.setIdAttentionPoint(null);
+                    oldEmployeeOfIdAttentionPoint = em.merge(oldEmployeeOfIdAttentionPoint);
+                }
+                idAttentionPoint.setEmployee(employee);
                 idAttentionPoint = em.merge(idAttentionPoint);
             }
             if (idBranch != null) {
-                idBranch.getEmployeeList().add(employee);
+                Employee oldEmployeeOfIdBranch = idBranch.getEmployee();
+                if (oldEmployeeOfIdBranch != null) {
+                    oldEmployeeOfIdBranch.setIdBranch(null);
+                    oldEmployeeOfIdBranch = em.merge(oldEmployeeOfIdBranch);
+                }
+                idBranch.setEmployee(employee);
                 idBranch = em.merge(idBranch);
+            }
+            if (idProfile != null) {
+                Employee oldEmployeeOfIdProfile = idProfile.getEmployee();
+                if (oldEmployeeOfIdProfile != null) {
+                    oldEmployeeOfIdProfile.setIdProfile(null);
+                    oldEmployeeOfIdProfile = em.merge(oldEmployeeOfIdProfile);
+                }
+                idProfile.setEmployee(employee);
+                idProfile = em.merge(idProfile);
+            }
+            for (Turn turnListTurn : employee.getTurnList()) {
+                Employee oldIdEmployeeOfTurnListTurn = turnListTurn.getIdEmployee();
+                turnListTurn.setIdEmployee(employee);
+                turnListTurn = em.merge(turnListTurn);
+                if (oldIdEmployeeOfTurnListTurn != null) {
+                    oldIdEmployeeOfTurnListTurn.getTurnList().remove(turnListTurn);
+                    oldIdEmployeeOfTurnListTurn = em.merge(oldIdEmployeeOfTurnListTurn);
+                }
             }
             em.getTransaction().commit();
         } finally {
@@ -92,16 +116,14 @@ public class EmployeeJpaController implements Serializable {
             em = getEntityManager();
             em.getTransaction().begin();
             Employee persistentEmployee = em.find(Employee.class, employee.getId());
-            User userOld = persistentEmployee.getUser();
-            User userNew = employee.getUser();
             AttentionPoint idAttentionPointOld = persistentEmployee.getIdAttentionPoint();
             AttentionPoint idAttentionPointNew = employee.getIdAttentionPoint();
             Branch idBranchOld = persistentEmployee.getIdBranch();
             Branch idBranchNew = employee.getIdBranch();
-            if (userNew != null) {
-                userNew = em.getReference(userNew.getClass(), userNew.getId());
-                employee.setUser(userNew);
-            }
+            Profile idProfileOld = persistentEmployee.getIdProfile();
+            Profile idProfileNew = employee.getIdProfile();
+            List<Turn> turnListOld = persistentEmployee.getTurnList();
+            List<Turn> turnListNew = employee.getTurnList();
             if (idAttentionPointNew != null) {
                 idAttentionPointNew = em.getReference(idAttentionPointNew.getClass(), idAttentionPointNew.getId());
                 employee.setIdAttentionPoint(idAttentionPointNew);
@@ -110,35 +132,73 @@ public class EmployeeJpaController implements Serializable {
                 idBranchNew = em.getReference(idBranchNew.getClass(), idBranchNew.getId());
                 employee.setIdBranch(idBranchNew);
             }
+            if (idProfileNew != null) {
+                idProfileNew = em.getReference(idProfileNew.getClass(), idProfileNew.getId());
+                employee.setIdProfile(idProfileNew);
+            }
+            List<Turn> attachedTurnListNew = new ArrayList<Turn>();
+            for (Turn turnListNewTurnToAttach : turnListNew) {
+                turnListNewTurnToAttach = em.getReference(turnListNewTurnToAttach.getClass(), turnListNewTurnToAttach.getUuid());
+                attachedTurnListNew.add(turnListNewTurnToAttach);
+            }
+            turnListNew = attachedTurnListNew;
+            employee.setTurnList(turnListNew);
             employee = em.merge(employee);
-            if (userOld != null && !userOld.equals(userNew)) {
-                userOld.setIdEmployee(null);
-                userOld = em.merge(userOld);
-            }
-            if (userNew != null && !userNew.equals(userOld)) {
-                Employee oldIdEmployeeOfUser = userNew.getIdEmployee();
-                if (oldIdEmployeeOfUser != null) {
-                    oldIdEmployeeOfUser.setUser(null);
-                    oldIdEmployeeOfUser = em.merge(oldIdEmployeeOfUser);
-                }
-                userNew.setIdEmployee(employee);
-                userNew = em.merge(userNew);
-            }
             if (idAttentionPointOld != null && !idAttentionPointOld.equals(idAttentionPointNew)) {
-                idAttentionPointOld.getEmployeeList().remove(employee);
+                idAttentionPointOld.setEmployee(null);
                 idAttentionPointOld = em.merge(idAttentionPointOld);
             }
             if (idAttentionPointNew != null && !idAttentionPointNew.equals(idAttentionPointOld)) {
-                idAttentionPointNew.getEmployeeList().add(employee);
+                Employee oldEmployeeOfIdAttentionPoint = idAttentionPointNew.getEmployee();
+                if (oldEmployeeOfIdAttentionPoint != null) {
+                    oldEmployeeOfIdAttentionPoint.setIdAttentionPoint(null);
+                    oldEmployeeOfIdAttentionPoint = em.merge(oldEmployeeOfIdAttentionPoint);
+                }
+                idAttentionPointNew.setEmployee(employee);
                 idAttentionPointNew = em.merge(idAttentionPointNew);
             }
             if (idBranchOld != null && !idBranchOld.equals(idBranchNew)) {
-                idBranchOld.getEmployeeList().remove(employee);
+                idBranchOld.setEmployee(null);
                 idBranchOld = em.merge(idBranchOld);
             }
             if (idBranchNew != null && !idBranchNew.equals(idBranchOld)) {
-                idBranchNew.getEmployeeList().add(employee);
+                Employee oldEmployeeOfIdBranch = idBranchNew.getEmployee();
+                if (oldEmployeeOfIdBranch != null) {
+                    oldEmployeeOfIdBranch.setIdBranch(null);
+                    oldEmployeeOfIdBranch = em.merge(oldEmployeeOfIdBranch);
+                }
+                idBranchNew.setEmployee(employee);
                 idBranchNew = em.merge(idBranchNew);
+            }
+            if (idProfileOld != null && !idProfileOld.equals(idProfileNew)) {
+                idProfileOld.setEmployee(null);
+                idProfileOld = em.merge(idProfileOld);
+            }
+            if (idProfileNew != null && !idProfileNew.equals(idProfileOld)) {
+                Employee oldEmployeeOfIdProfile = idProfileNew.getEmployee();
+                if (oldEmployeeOfIdProfile != null) {
+                    oldEmployeeOfIdProfile.setIdProfile(null);
+                    oldEmployeeOfIdProfile = em.merge(oldEmployeeOfIdProfile);
+                }
+                idProfileNew.setEmployee(employee);
+                idProfileNew = em.merge(idProfileNew);
+            }
+            for (Turn turnListOldTurn : turnListOld) {
+                if (!turnListNew.contains(turnListOldTurn)) {
+                    turnListOldTurn.setIdEmployee(null);
+                    turnListOldTurn = em.merge(turnListOldTurn);
+                }
+            }
+            for (Turn turnListNewTurn : turnListNew) {
+                if (!turnListOld.contains(turnListNewTurn)) {
+                    Employee oldIdEmployeeOfTurnListNewTurn = turnListNewTurn.getIdEmployee();
+                    turnListNewTurn.setIdEmployee(employee);
+                    turnListNewTurn = em.merge(turnListNewTurn);
+                    if (oldIdEmployeeOfTurnListNewTurn != null && !oldIdEmployeeOfTurnListNewTurn.equals(employee)) {
+                        oldIdEmployeeOfTurnListNewTurn.getTurnList().remove(turnListNewTurn);
+                        oldIdEmployeeOfTurnListNewTurn = em.merge(oldIdEmployeeOfTurnListNewTurn);
+                    }
+                }
             }
             em.getTransaction().commit();
         } catch (Exception ex) {
@@ -169,20 +229,25 @@ public class EmployeeJpaController implements Serializable {
             } catch (EntityNotFoundException enfe) {
                 throw new NonexistentEntityException("The employee with id " + id + " no longer exists.", enfe);
             }
-            User user = employee.getUser();
-            if (user != null) {
-                user.setIdEmployee(null);
-                user = em.merge(user);
-            }
             AttentionPoint idAttentionPoint = employee.getIdAttentionPoint();
             if (idAttentionPoint != null) {
-                idAttentionPoint.getEmployeeList().remove(employee);
+                idAttentionPoint.setEmployee(null);
                 idAttentionPoint = em.merge(idAttentionPoint);
             }
             Branch idBranch = employee.getIdBranch();
             if (idBranch != null) {
-                idBranch.getEmployeeList().remove(employee);
+                idBranch.setEmployee(null);
                 idBranch = em.merge(idBranch);
+            }
+            Profile idProfile = employee.getIdProfile();
+            if (idProfile != null) {
+                idProfile.setEmployee(null);
+                idProfile = em.merge(idProfile);
+            }
+            List<Turn> turnList = employee.getTurnList();
+            for (Turn turnListTurn : turnList) {
+                turnListTurn.setIdEmployee(null);
+                turnListTurn = em.merge(turnListTurn);
             }
             em.remove(employee);
             em.getTransaction().commit();

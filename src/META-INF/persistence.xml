@@ -2,13 +2,16 @@
 <persistence version="2.1" xmlns="http://xmlns.jcp.org/xml/ns/persistence" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence http://xmlns.jcp.org/xml/ns/persistence/persistence_2_1.xsd">
   <persistence-unit name="stomcPU" transaction-type="RESOURCE_LOCAL">
     <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
-    <class>dominio.AttentionPoint</class>
     <class>dominio.Branch</class>
     <class>dominio.Employee</class>
     <class>dominio.Profile</class>
     <class>dominio.ReportingLog</class>
     <class>dominio.Turn</class>
-    <class>dominio.User</class>
+    <class>dominio.CatalogueAttentionPoint</class>
+    <class>dominio.CatalogueBranch</class>
+    <class>dominio.CatalogueProfile</class>
+    <class>dominio.AttentionPoint</class>
+    <class>dominio.LysingInformation</class>
     <properties>
       <property name="javax.persistence.jdbc.url" value="jdbc:sqlserver://localhost:1433;databaseName=stomc"/>
       <property name="javax.persistence.jdbc.user" value="stomc"/>
