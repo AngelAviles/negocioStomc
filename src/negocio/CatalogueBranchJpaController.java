@@ -7,11 +7,13 @@ package negocio;
 
 import dominio.CatalogueBranch;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Query;
 import javax.persistence.EntityNotFoundException;
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import negocio.exceptions.NonexistentEntityException;
@@ -111,6 +113,42 @@ public class CatalogueBranchJpaController implements Serializable {
         } finally {
             em.close();
         }
+    }
+    
+        public List<CatalogueBranch> findCatalogueBranchByFolio(Long folio) throws Exception {
+        EntityManager em = getEntityManager();
+        
+        TypedQuery<CatalogueBranch> consultaSucursal = em.createNamedQuery("CatalogueBranch.findByFolio", CatalogueBranch.class);
+        consultaSucursal.setParameter("folio", folio);
+        
+        List<CatalogueBranch> sucursales = new ArrayList<>();
+        
+        try {
+            sucursales = consultaSucursal.getResultList();
+        } catch (Exception exception) {
+            throw new Exception("Ocurrio un error.");
+        } finally {
+            em.close();
+        }
+        return sucursales;
+    }
+    
+    public List<CatalogueBranch> findCatalogueBranchByFolio(String branchName) throws Exception {
+        EntityManager em = getEntityManager();
+        
+        TypedQuery<CatalogueBranch> consultaSucursal = em.createNamedQuery("CatalogueBranch.findByBranchName", CatalogueBranch.class);
+        consultaSucursal.setParameter("branchName", branchName);
+        
+        List<CatalogueBranch> sucursales = new ArrayList<>();
+        
+        try {
+            sucursales = consultaSucursal.getResultList();
+        } catch (Exception exception) {
+            throw new Exception("Ocurrio un error.");
+        } finally {
+            em.close();
+        }
+        return sucursales;
     }
 
     public CatalogueBranch findCatalogueBranch(Long id) {

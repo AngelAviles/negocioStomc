@@ -12,9 +12,11 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import dominio.Employee;
 import dominio.Profile;
+import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.TypedQuery;
 import negocio.exceptions.NonexistentEntityException;
 
 /**
@@ -151,6 +153,42 @@ public class ProfileJpaController implements Serializable {
         } finally {
             em.close();
         }
+    }
+    
+    public List<Profile> findProfileByFolio(Long folio) throws Exception {
+        EntityManager em = getEntityManager();
+        
+        TypedQuery<Profile> consultaPerfil = em.createNamedQuery("Profile.findByFolio", Profile.class);
+        consultaPerfil.setParameter("folio", folio);
+        
+        List<Profile> perfiles = new ArrayList<>();
+        
+        try {
+            perfiles = consultaPerfil.getResultList();
+        } catch (Exception exception) {
+            throw new Exception("Ocurrio un error.");
+        } finally {
+            em.close();
+        }
+        return perfiles;
+    }
+    
+    public List<Profile> findProfileByProfileName(String profileName) throws Exception {
+        EntityManager em = getEntityManager();
+        
+        TypedQuery<Profile> consultaPerfil = em.createNamedQuery("Profile.findByProfileName", Profile.class);
+        consultaPerfil.setParameter("profileName", profileName);
+        
+        List<Profile> perfiles = new ArrayList<>();
+        
+        try {
+            perfiles = consultaPerfil.getResultList();
+        } catch (Exception exception) {
+            throw new Exception("Ocurrio un error.");
+        } finally {
+            em.close();
+        }
+        return perfiles;
     }
 
     public Profile findProfile(Long id) {

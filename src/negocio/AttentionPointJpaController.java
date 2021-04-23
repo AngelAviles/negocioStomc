@@ -12,9 +12,11 @@ import javax.persistence.EntityNotFoundException;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import dominio.Employee;
+import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.TypedQuery;
 import negocio.exceptions.NonexistentEntityException;
 
 /**
@@ -151,6 +153,42 @@ public class AttentionPointJpaController implements Serializable {
         } finally {
             em.close();
         }
+    }
+    
+    public List<AttentionPoint> findAttentionPointByFolio(Long folio) throws Exception {
+        EntityManager em = getEntityManager();
+        
+        TypedQuery<AttentionPoint> consultaPuntosDeAtencion = em.createNamedQuery("AttentionPoint.findByFolio", AttentionPoint.class);
+        consultaPuntosDeAtencion.setParameter("folio", folio);
+        
+        List<AttentionPoint> puntosDeAtencion = new ArrayList<>();
+        
+        try {
+            puntosDeAtencion = consultaPuntosDeAtencion.getResultList();
+        } catch (Exception exception) {
+            throw new Exception("Ocurrio un error.");
+        } finally {
+            em.close();
+        }
+        return puntosDeAtencion;
+    }
+    
+    public List<AttentionPoint> findAttentionPointByPoint(String point) throws Exception {
+        EntityManager em = getEntityManager();
+        
+        TypedQuery<AttentionPoint> consultaPuntosDeAtencion = em.createNamedQuery("AttentionPoint.findByPoint", AttentionPoint.class);
+        consultaPuntosDeAtencion.setParameter("point", point);
+        
+        List<AttentionPoint> puntosDeAtencion = new ArrayList<>();
+        
+        try {
+            puntosDeAtencion = consultaPuntosDeAtencion.getResultList();
+        } catch (Exception exception) {
+            throw new Exception("Ocurrio un error.");
+        } finally {
+            em.close();
+        }
+        return puntosDeAtencion;
     }
 
     public AttentionPoint findAttentionPoint(Long id) {

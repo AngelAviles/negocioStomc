@@ -19,6 +19,8 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.NoResultException;
+import javax.persistence.TypedQuery;
 import negocio.exceptions.NonexistentEntityException;
 
 /**
@@ -280,6 +282,134 @@ public class EmployeeJpaController implements Serializable {
         } finally {
             em.close();
         }
+    }
+    
+    public List<Employee> findEmployeeByaccountAndPassword(String account, String password) throws Exception {
+        EntityManager em = getEntityManager();
+        
+        TypedQuery<Employee> consultaEmpleado = em.createNamedQuery("Employee.login", Employee.class);
+        consultaEmpleado.setParameter("account", account);
+        consultaEmpleado.setParameter("password", password);
+        
+        List<Employee> empleados = new ArrayList<>();
+        
+        try {
+            empleados = consultaEmpleado.getResultList();
+        } catch (Exception exception) {
+            throw new Exception("Ocurrio un error.");
+        } finally {
+            em.close();
+        }
+        return empleados;
+    }
+    
+    public List<Employee> findEmployeeComprobarValoresUnicos(Long noEmployee, String account, String password) throws Exception {
+        EntityManager em = getEntityManager();
+        
+        TypedQuery<Employee> consultaEmpleado = em.createNamedQuery("Employee.comprobarValoresUnicos", Employee.class);
+        consultaEmpleado.setParameter("account", account);
+        consultaEmpleado.setParameter("noEmployee", noEmployee);
+        
+        List<Employee> empleados = new ArrayList<>();
+        
+        try {
+            empleados = consultaEmpleado.getResultList();
+        } catch (Exception exception) {
+            throw new Exception("Ocurrio un error.");
+        } finally {
+            em.close();
+        }
+        return empleados;
+    }
+    
+    public List<Employee> findEmployeeByFolio(Long folio) throws Exception {
+        EntityManager em = getEntityManager();
+        
+        TypedQuery<Employee> consultaEmpleado = em.createNamedQuery("Employee.findByFolio", Employee.class);
+        consultaEmpleado.setParameter("folio", folio);
+        
+        List<Employee> empleados = new ArrayList<>();
+        
+        try {
+            empleados = consultaEmpleado.getResultList();
+        } catch (Exception exception) {
+            throw new Exception("Ocurrio un error.");
+        } finally {
+            em.close();
+        }
+        return empleados;
+    }
+    
+    public List<Employee> findEmployeeByNoEmployee(Long noEmployee) throws Exception {
+        EntityManager em = getEntityManager();
+        
+        TypedQuery<Employee> consultaEmpleado = em.createNamedQuery("Employee.findByNoEmployee", Employee.class);
+        consultaEmpleado.setParameter("noEmployee", noEmployee);
+        
+        List<Employee> empleados = new ArrayList<>();
+        
+        try {
+            empleados = consultaEmpleado.getResultList();
+        } catch (Exception exception) {
+            throw new Exception("Ocurrio un error.");
+        } finally {
+            em.close();
+        }
+        return empleados;
+    }
+    
+    public List<Employee> findEmployeeByName(String name) throws Exception {
+        EntityManager em = getEntityManager();
+        
+        TypedQuery<Employee> consultaEmpleado = em.createNamedQuery("Employee.findByName", Employee.class);
+        consultaEmpleado.setParameter("name", name);
+        
+        List<Employee> empleados = new ArrayList<>();
+        
+        try {
+            empleados = consultaEmpleado.getResultList();
+        } catch (Exception exception) {
+            throw new Exception("Ocurrio un error.");
+        } finally {
+            em.close();
+        }
+        return empleados;
+    }
+    
+    public List<Employee> findEmployeeByAddress(String address) throws Exception {
+        EntityManager em = getEntityManager();
+        
+        TypedQuery<Employee> consultaEmpleado = em.createNamedQuery("Employee.findByAddress", Employee.class);
+        consultaEmpleado.setParameter("address", address);
+        
+        List<Employee> empleados = new ArrayList<>();
+        
+        try {
+            empleados = consultaEmpleado.getResultList();
+        } catch (Exception exception) {
+            throw new Exception("Ocurrio un error.");
+        } finally {
+            em.close();
+        }
+        return empleados;
+    }
+    
+    public List<Employee> findEmployeeByDepartment(String department) throws Exception {
+        EntityManager em = getEntityManager();
+        
+        TypedQuery<Employee> consultaEmpleado = em.createNamedQuery("Employee.findByDepartment", Employee.class);
+        consultaEmpleado.setParameter("department", department);
+        
+        List<Employee> empleados = new ArrayList<>();
+        
+        try {
+            empleados = consultaEmpleado.getResultList();
+        } catch (Exception exception) {
+            throw new Exception("Ocurrio un error.");
+        } finally {
+            em.close();
+        }
+        return empleados;
     }
 
     public Employee findEmployee(Long id) {

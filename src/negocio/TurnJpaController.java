@@ -12,9 +12,12 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import dominio.Employee;
 import dominio.Turn;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.TypedQuery;
 import negocio.exceptions.NonexistentEntityException;
 import negocio.exceptions.PreexistingEntityException;
 
@@ -147,6 +150,79 @@ public class TurnJpaController implements Serializable {
         } finally {
             em.close();
         }
+    }
+    
+    public List<Turn> findTurnByDate(Date fechaInicio, Date fechaFin) throws Exception {
+        EntityManager em = getEntityManager();
+        
+        TypedQuery<Turn> consultaTurno = em.createNamedQuery("Turn.findByDateTimeCreated", Turn.class);
+        consultaTurno.setParameter("fechaInicio", fechaInicio);
+        consultaTurno.setParameter("fechaFin", fechaFin);
+        
+        List<Turn> turnos = new ArrayList<>();
+        
+        try {
+            turnos = consultaTurno.getResultList();
+        } catch (Exception exception) {
+            throw new Exception("Ocurrio un error.");
+        } finally {
+            em.close();
+        }
+        return turnos;
+    }
+    
+    public List<Turn> findTurnByStatus(String status) throws Exception {
+        EntityManager em = getEntityManager();
+        
+        TypedQuery<Turn> consultaTurno = em.createNamedQuery("Turn.findByStatus", Turn.class);
+        consultaTurno.setParameter("status", status);
+        
+        List<Turn> turnos = new ArrayList<>();
+        
+        try {
+            turnos = consultaTurno.getResultList();
+        } catch (Exception exception) {
+            throw new Exception("Ocurrio un error.");
+        } finally {
+            em.close();
+        }
+        return turnos;
+    }
+    
+    public List<Turn> findTurnByIsActive(Boolean isActive) throws Exception {
+        EntityManager em = getEntityManager();
+        
+        TypedQuery<Turn> consultaTurno = em.createNamedQuery("Turn.findByIsActive", Turn.class);
+        consultaTurno.setParameter("isActive", isActive);
+        
+        List<Turn> turnos = new ArrayList<>();
+        
+        try {
+            turnos = consultaTurno.getResultList();
+        } catch (Exception exception) {
+            throw new Exception("Ocurrio un error.");
+        } finally {
+            em.close();
+        }
+        return turnos;
+    }
+    
+    public List<Turn> findTurnByType(Turn.Type type) throws Exception {
+        EntityManager em = getEntityManager();
+        
+        TypedQuery<Turn> consultaTurno = em.createNamedQuery("Turn.findByType", Turn.class);
+        consultaTurno.setParameter("type", type);
+        
+        List<Turn> turnos = new ArrayList<>();
+        
+        try {
+            turnos = consultaTurno.getResultList();
+        } catch (Exception exception) {
+            throw new Exception("Ocurrio un error.");
+        } finally {
+            em.close();
+        }
+        return turnos;
     }
 
     public Turn findTurn(String id) {

@@ -7,11 +7,13 @@ package negocio;
 
 import dominio.CatalogueProfile;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Query;
 import javax.persistence.EntityNotFoundException;
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import negocio.exceptions.NonexistentEntityException;
@@ -111,6 +113,42 @@ public class CatalogueProfileJpaController implements Serializable {
         } finally {
             em.close();
         }
+    }
+    
+        public List<CatalogueProfile> findCatalogueProfileByFolio(Long folio) throws Exception {
+        EntityManager em = getEntityManager();
+        
+        TypedQuery<CatalogueProfile> consultaPerfil = em.createNamedQuery("CatalogueProfile.findByFolio", CatalogueProfile.class);
+        consultaPerfil.setParameter("folio", folio);
+        
+        List<CatalogueProfile> perfiles = new ArrayList<>();
+        
+        try {
+            perfiles = consultaPerfil.getResultList();
+        } catch (Exception exception) {
+            throw new Exception("Ocurrio un error.");
+        } finally {
+            em.close();
+        }
+        return perfiles;
+    }
+        
+    public List<CatalogueProfile> findCatalogueProfileByProfileName(String profileName) throws Exception {
+        EntityManager em = getEntityManager();
+        
+        TypedQuery<CatalogueProfile> consultaPerfil = em.createNamedQuery("CatalogueProfile.findByProfileName", CatalogueProfile.class);
+        consultaPerfil.setParameter("profileName", profileName);
+        
+        List<CatalogueProfile> perfiles = new ArrayList<>();
+        
+        try {
+            perfiles = consultaPerfil.getResultList();
+        } catch (Exception exception) {
+            throw new Exception("Ocurrio un error.");
+        } finally {
+            em.close();
+        }
+        return perfiles;
     }
 
     public CatalogueProfile findCatalogueProfile(Long id) {

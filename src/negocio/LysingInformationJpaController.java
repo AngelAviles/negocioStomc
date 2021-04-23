@@ -7,11 +7,13 @@ package negocio;
 
 import dominio.LysingInformation;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Query;
 import javax.persistence.EntityNotFoundException;
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import negocio.exceptions.NonexistentEntityException;
@@ -111,6 +113,42 @@ public class LysingInformationJpaController implements Serializable {
         } finally {
             em.close();
         }
+    }
+    
+    public List<LysingInformation> findLysingInformationByFolio(Long folio) throws Exception {
+        EntityManager em = getEntityManager();
+        
+        TypedQuery<LysingInformation> consultaLysingInformation = em.createNamedQuery("LysingInformation.findByFolio", LysingInformation.class);
+        consultaLysingInformation.setParameter("folio", folio);
+        
+        List<LysingInformation> lysingInformations = new ArrayList<>();
+        
+        try {
+            lysingInformations = consultaLysingInformation.getResultList();
+        } catch (Exception exception) {
+            throw new Exception("Ocurrio un error.");
+        } finally {
+            em.close();
+        }
+        return lysingInformations;
+    }
+    
+    public List<LysingInformation> findLysingInformationByProcess(String process) throws Exception {
+        EntityManager em = getEntityManager();
+        
+        TypedQuery<LysingInformation> consultaLysingInformation = em.createNamedQuery("LysingInformation.findByProcess", LysingInformation.class);
+        consultaLysingInformation.setParameter("process", process);
+        
+        List<LysingInformation> lysingInformations = new ArrayList<>();
+        
+        try {
+            lysingInformations = consultaLysingInformation.getResultList();
+        } catch (Exception exception) {
+            throw new Exception("Ocurrio un error.");
+        } finally {
+            em.close();
+        }
+        return lysingInformations;
     }
 
     public LysingInformation findLysingInformation(Long id) {

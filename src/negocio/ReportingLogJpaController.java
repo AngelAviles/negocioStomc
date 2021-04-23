@@ -7,11 +7,14 @@ package negocio;
 
 import dominio.ReportingLog;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Query;
 import javax.persistence.EntityNotFoundException;
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import negocio.exceptions.NonexistentEntityException;
@@ -111,6 +114,79 @@ public class ReportingLogJpaController implements Serializable {
         } finally {
             em.close();
         }
+    }
+    
+    public List<ReportingLog> findReportingLogByFolio(Long folio) throws Exception {
+        EntityManager em = getEntityManager();
+        
+        TypedQuery<ReportingLog> consultaReportingLog = em.createNamedQuery("ReportingLog.findByFolio", ReportingLog.class);
+        consultaReportingLog.setParameter("folio", folio);
+        
+        List<ReportingLog> reportingLogs = new ArrayList<>();
+        
+        try {
+            reportingLogs = consultaReportingLog.getResultList();
+        } catch (Exception exception) {
+            throw new Exception("Ocurrio un error.");
+        } finally {
+            em.close();
+        }
+        return reportingLogs;
+    }
+    
+    public List<ReportingLog> findReportingLogByRequestedReport(String requestedReport) throws Exception {
+        EntityManager em = getEntityManager();
+        
+        TypedQuery<ReportingLog> consultaReportingLog = em.createNamedQuery("ReportingLog.findByRequestedReport", ReportingLog.class);
+        consultaReportingLog.setParameter("requestedReport", requestedReport);
+        
+        List<ReportingLog> reportingLogs = new ArrayList<>();
+        
+        try {
+            reportingLogs = consultaReportingLog.getResultList();
+        } catch (Exception exception) {
+            throw new Exception("Ocurrio un error.");
+        } finally {
+            em.close();
+        }
+        return reportingLogs;
+    }
+    
+    public List<ReportingLog> findReportingLogByUserAccount(String userAccount) throws Exception {
+        EntityManager em = getEntityManager();
+        
+        TypedQuery<ReportingLog> consultaReportingLog = em.createNamedQuery("ReportingLog.findByUserAccount", ReportingLog.class);
+        consultaReportingLog.setParameter("userAccount", userAccount);
+        
+        List<ReportingLog> reportingLogs = new ArrayList<>();
+        
+        try {
+            reportingLogs = consultaReportingLog.getResultList();
+        } catch (Exception exception) {
+            throw new Exception("Ocurrio un error.");
+        } finally {
+            em.close();
+        }
+        return reportingLogs;
+    }
+    
+    public List<ReportingLog> findReportingByDateReport(Date fechaInicio, Date fechaFin) throws Exception {
+        EntityManager em = getEntityManager();
+        
+        TypedQuery<ReportingLog> consultaReportingLog = em.createNamedQuery("ReportingLog.findByDateReport", ReportingLog.class);
+        consultaReportingLog.setParameter("fechaInicio", fechaInicio);
+        consultaReportingLog.setParameter("fechaFin", fechaFin);
+        
+        List<ReportingLog> reportingLogs = new ArrayList<>();
+        
+        try {
+            reportingLogs = consultaReportingLog.getResultList();
+        } catch (Exception exception) {
+            throw new Exception("Ocurrio un error.");
+        } finally {
+            em.close();
+        }
+        return reportingLogs;
     }
 
     public ReportingLog findReportingLog(Long id) {

@@ -7,11 +7,13 @@ package negocio;
 
 import dominio.CatalogueAttentionPoint;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Query;
 import javax.persistence.EntityNotFoundException;
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import negocio.exceptions.NonexistentEntityException;
@@ -112,6 +114,43 @@ public class CatalogueAttentionPointJpaController implements Serializable {
             em.close();
         }
     }
+    
+    public List<CatalogueAttentionPoint> findCatalogueAttentionPointByFolio(Long folio) throws Exception {
+        EntityManager em = getEntityManager();
+        
+        TypedQuery<CatalogueAttentionPoint> consultaPuntosDeAtencion = em.createNamedQuery("CatalogueAttentionPoint.findByFolio", CatalogueAttentionPoint.class);
+        consultaPuntosDeAtencion.setParameter("folio", folio);
+        
+        List<CatalogueAttentionPoint> puntosDeAtencion = new ArrayList<>();
+        
+        try {
+            puntosDeAtencion = consultaPuntosDeAtencion.getResultList();
+        } catch (Exception exception) {
+            throw new Exception("Ocurrio un error.");
+        } finally {
+            em.close();
+        }
+        return puntosDeAtencion;
+    }
+    
+    public List<CatalogueAttentionPoint> findCatalogueAttentionPointByPoint(String point) throws Exception {
+        EntityManager em = getEntityManager();
+        
+        TypedQuery<CatalogueAttentionPoint> consultaPuntosDeAtencion = em.createNamedQuery("CatalogueAttentionPoint.findByPoint", CatalogueAttentionPoint.class);
+        consultaPuntosDeAtencion.setParameter("point", point);
+        
+        List<CatalogueAttentionPoint> puntosDeAtencion = new ArrayList<>();
+        
+        try {
+            puntosDeAtencion = consultaPuntosDeAtencion.getResultList();
+        } catch (Exception exception) {
+            throw new Exception("Ocurrio un error.");
+        } finally {
+            em.close();
+        }
+        return puntosDeAtencion;
+    }
+
 
     public CatalogueAttentionPoint findCatalogueAttentionPoint(Long id) {
         EntityManager em = getEntityManager();

@@ -12,9 +12,11 @@ import javax.persistence.EntityNotFoundException;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import dominio.Employee;
+import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.TypedQuery;
 import negocio.exceptions.NonexistentEntityException;
 
 /**
@@ -151,6 +153,42 @@ public class BranchJpaController implements Serializable {
         } finally {
             em.close();
         }
+    }
+    
+    public List<Branch> findBranchByFolio(Long folio) throws Exception {
+        EntityManager em = getEntityManager();
+        
+        TypedQuery<Branch> consultaSucursal = em.createNamedQuery("Branch.findByFolio", Branch.class);
+        consultaSucursal.setParameter("folio", folio);
+        
+        List<Branch> sucursales = new ArrayList<>();
+        
+        try {
+            sucursales = consultaSucursal.getResultList();
+        } catch (Exception exception) {
+            throw new Exception("Ocurrio un error.");
+        } finally {
+            em.close();
+        }
+        return sucursales;
+    }
+    
+    public List<Branch> findBranchByFolio(String branchName) throws Exception {
+        EntityManager em = getEntityManager();
+        
+        TypedQuery<Branch> consultaSucursal = em.createNamedQuery("Branch.findByBranchName", Branch.class);
+        consultaSucursal.setParameter("branchName", branchName);
+        
+        List<Branch> sucursales = new ArrayList<>();
+        
+        try {
+            sucursales = consultaSucursal.getResultList();
+        } catch (Exception exception) {
+            throw new Exception("Ocurrio un error.");
+        } finally {
+            em.close();
+        }
+        return sucursales;
     }
 
     public Branch findBranch(Long id) {
