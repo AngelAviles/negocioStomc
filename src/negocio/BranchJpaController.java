@@ -173,7 +173,7 @@ public class BranchJpaController implements Serializable {
         return sucursales;
     }
     
-    public List<Branch> findBranchByFolio(String branchName) throws Exception {
+    public List<Branch> findBranchByBranchName(String branchName) throws Exception {
         EntityManager em = getEntityManager();
         
         TypedQuery<Branch> consultaSucursal = em.createNamedQuery("Branch.findByBranchName", Branch.class);

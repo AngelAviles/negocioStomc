@@ -17,11 +17,14 @@ import dominio.Profile;
 import dominio.Turn;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
 import negocio.exceptions.NonexistentEntityException;
+import negocio.exceptions.PreexistingEntityException;
 
 /**
  *
@@ -38,77 +41,91 @@ public class EmployeeJpaController implements Serializable {
         return emf.createEntityManager();
     }
 
-    public void create(Employee employee) {
-        if (employee.getTurnList() == null) {
-            employee.setTurnList(new ArrayList<Turn>());
-        }
-        EntityManager em = null;
+    public void create(Employee employee) throws PreexistingEntityException {
+
+        List<Employee> empleados = null;
+
         try {
-            em = getEntityManager();
-            em.getTransaction().begin();
-            AttentionPoint idAttentionPoint = employee.getIdAttentionPoint();
-            if (idAttentionPoint != null) {
-                idAttentionPoint = em.getReference(idAttentionPoint.getClass(), idAttentionPoint.getId());
-                employee.setIdAttentionPoint(idAttentionPoint);
+            empleados = findEmployeeComprobarValoresUnicos(employee.getNoEmployee(), employee.getAccount());
+        } catch (Exception ex) {
+            Logger.getLogger(EmployeeJpaController.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        if (empleados.isEmpty()) {
+
+            if (employee.getTurnList() == null) {
+                employee.setTurnList(new ArrayList<Turn>());
             }
-            Branch idBranch = employee.getIdBranch();
-            if (idBranch != null) {
-                idBranch = em.getReference(idBranch.getClass(), idBranch.getId());
-                employee.setIdBranch(idBranch);
-            }
-            Profile idProfile = employee.getIdProfile();
-            if (idProfile != null) {
-                idProfile = em.getReference(idProfile.getClass(), idProfile.getId());
-                employee.setIdProfile(idProfile);
-            }
-            List<Turn> attachedTurnList = new ArrayList<Turn>();
-            for (Turn turnListTurnToAttach : employee.getTurnList()) {
-                turnListTurnToAttach = em.getReference(turnListTurnToAttach.getClass(), turnListTurnToAttach.getUuid());
-                attachedTurnList.add(turnListTurnToAttach);
-            }
-            employee.setTurnList(attachedTurnList);
-            em.persist(employee);
-            if (idAttentionPoint != null) {
-                Employee oldEmployeeOfIdAttentionPoint = idAttentionPoint.getEmployee();
-                if (oldEmployeeOfIdAttentionPoint != null) {
-                    oldEmployeeOfIdAttentionPoint.setIdAttentionPoint(null);
-                    oldEmployeeOfIdAttentionPoint = em.merge(oldEmployeeOfIdAttentionPoint);
+            EntityManager em = null;
+            try {
+                em = getEntityManager();
+                em.getTransaction().begin();
+                AttentionPoint idAttentionPoint = employee.getIdAttentionPoint();
+//            if (idAttentionPoint != null) {
+//                idAttentionPoint = em.getReference(idAttentionPoint.getClass(), idAttentionPoint.getId());
+//                employee.setIdAttentionPoint(idAttentionPoint);
+//            }
+                Branch idBranch = employee.getIdBranch();
+//            if (idBranch != null) {
+//                idBranch = em.getReference(idBranch.getClass(), idBranch.getId());
+//                employee.setIdBranch(idBranch);
+//            }
+                Profile idProfile = employee.getIdProfile();
+//            if (idProfile != null) {
+//                idProfile = em.getReference(idProfile.getClass(), idProfile.getId());
+//                employee.setIdProfile(idProfile);
+//            }
+                List<Turn> attachedTurnList = new ArrayList<Turn>();
+                for (Turn turnListTurnToAttach : employee.getTurnList()) {
+                    turnListTurnToAttach = em.getReference(turnListTurnToAttach.getClass(), turnListTurnToAttach.getUuid());
+                    attachedTurnList.add(turnListTurnToAttach);
                 }
-                idAttentionPoint.setEmployee(employee);
-                idAttentionPoint = em.merge(idAttentionPoint);
-            }
-            if (idBranch != null) {
-                Employee oldEmployeeOfIdBranch = idBranch.getEmployee();
-                if (oldEmployeeOfIdBranch != null) {
-                    oldEmployeeOfIdBranch.setIdBranch(null);
-                    oldEmployeeOfIdBranch = em.merge(oldEmployeeOfIdBranch);
+                employee.setTurnList(attachedTurnList);
+                em.persist(employee);
+                if (idAttentionPoint != null) {
+                    Employee oldEmployeeOfIdAttentionPoint = idAttentionPoint.getEmployee();
+                    if (oldEmployeeOfIdAttentionPoint != null) {
+                        oldEmployeeOfIdAttentionPoint.setIdAttentionPoint(null);
+                        oldEmployeeOfIdAttentionPoint = em.merge(oldEmployeeOfIdAttentionPoint);
+                    }
+                    idAttentionPoint.setEmployee(employee);
+                    idAttentionPoint = em.merge(idAttentionPoint);
                 }
-                idBranch.setEmployee(employee);
-                idBranch = em.merge(idBranch);
-            }
-            if (idProfile != null) {
-                Employee oldEmployeeOfIdProfile = idProfile.getEmployee();
-                if (oldEmployeeOfIdProfile != null) {
-                    oldEmployeeOfIdProfile.setIdProfile(null);
-                    oldEmployeeOfIdProfile = em.merge(oldEmployeeOfIdProfile);
+                if (idBranch != null) {
+                    Employee oldEmployeeOfIdBranch = idBranch.getEmployee();
+                    if (oldEmployeeOfIdBranch != null) {
+                        oldEmployeeOfIdBranch.setIdBranch(null);
+                        oldEmployeeOfIdBranch = em.merge(oldEmployeeOfIdBranch);
+                    }
+                    idBranch.setEmployee(employee);
+                    idBranch = em.merge(idBranch);
                 }
-                idProfile.setEmployee(employee);
-                idProfile = em.merge(idProfile);
-            }
-            for (Turn turnListTurn : employee.getTurnList()) {
-                Employee oldIdEmployeeOfTurnListTurn = turnListTurn.getIdEmployee();
-                turnListTurn.setIdEmployee(employee);
-                turnListTurn = em.merge(turnListTurn);
-                if (oldIdEmployeeOfTurnListTurn != null) {
-                    oldIdEmployeeOfTurnListTurn.getTurnList().remove(turnListTurn);
-                    oldIdEmployeeOfTurnListTurn = em.merge(oldIdEmployeeOfTurnListTurn);
+                if (idProfile != null) {
+                    Employee oldEmployeeOfIdProfile = idProfile.getEmployee();
+                    if (oldEmployeeOfIdProfile != null) {
+                        oldEmployeeOfIdProfile.setIdProfile(null);
+                        oldEmployeeOfIdProfile = em.merge(oldEmployeeOfIdProfile);
+                    }
+                    idProfile.setEmployee(employee);
+                    idProfile = em.merge(idProfile);
+                }
+                for (Turn turnListTurn : employee.getTurnList()) {
+                    Employee oldIdEmployeeOfTurnListTurn = turnListTurn.getIdEmployee();
+                    turnListTurn.setIdEmployee(employee);
+                    turnListTurn = em.merge(turnListTurn);
+                    if (oldIdEmployeeOfTurnListTurn != null) {
+                        oldIdEmployeeOfTurnListTurn.getTurnList().remove(turnListTurn);
+                        oldIdEmployeeOfTurnListTurn = em.merge(oldIdEmployeeOfTurnListTurn);
+                    }
+                }
+                em.getTransaction().commit();
+            } finally {
+                if (em != null) {
+                    em.close();
                 }
             }
-            em.getTransaction().commit();
-        } finally {
-            if (em != null) {
-                em.close();
-            }
+        } else {
+            throw new PreexistingEntityException("Empleado con datos repetidos.", empleados.get(0));
         }
     }
 
@@ -283,16 +300,16 @@ public class EmployeeJpaController implements Serializable {
             em.close();
         }
     }
-    
+
     public List<Employee> findEmployeeByaccountAndPassword(String account, String password) throws Exception {
         EntityManager em = getEntityManager();
-        
+
         TypedQuery<Employee> consultaEmpleado = em.createNamedQuery("Employee.login", Employee.class);
         consultaEmpleado.setParameter("account", account);
         consultaEmpleado.setParameter("password", password);
-        
+
         List<Employee> empleados = new ArrayList<>();
-        
+
         try {
             empleados = consultaEmpleado.getResultList();
         } catch (Exception exception) {
@@ -302,16 +319,16 @@ public class EmployeeJpaController implements Serializable {
         }
         return empleados;
     }
-    
-    public List<Employee> findEmployeeComprobarValoresUnicos(Long noEmployee, String account, String password) throws Exception {
+
+    public List<Employee> findEmployeeComprobarValoresUnicos(Long noEmployee, String account) throws Exception {
         EntityManager em = getEntityManager();
-        
+
         TypedQuery<Employee> consultaEmpleado = em.createNamedQuery("Employee.comprobarValoresUnicos", Employee.class);
         consultaEmpleado.setParameter("account", account);
         consultaEmpleado.setParameter("noEmployee", noEmployee);
-        
+
         List<Employee> empleados = new ArrayList<>();
-        
+
         try {
             empleados = consultaEmpleado.getResultList();
         } catch (Exception exception) {
@@ -321,15 +338,15 @@ public class EmployeeJpaController implements Serializable {
         }
         return empleados;
     }
-    
+
     public List<Employee> findEmployeeByFolio(Long folio) throws Exception {
         EntityManager em = getEntityManager();
-        
+
         TypedQuery<Employee> consultaEmpleado = em.createNamedQuery("Employee.findByFolio", Employee.class);
         consultaEmpleado.setParameter("folio", folio);
-        
+
         List<Employee> empleados = new ArrayList<>();
-        
+
         try {
             empleados = consultaEmpleado.getResultList();
         } catch (Exception exception) {
@@ -339,15 +356,15 @@ public class EmployeeJpaController implements Serializable {
         }
         return empleados;
     }
-    
+
     public List<Employee> findEmployeeByNoEmployee(Long noEmployee) throws Exception {
         EntityManager em = getEntityManager();
-        
+
         TypedQuery<Employee> consultaEmpleado = em.createNamedQuery("Employee.findByNoEmployee", Employee.class);
         consultaEmpleado.setParameter("noEmployee", noEmployee);
-        
+
         List<Employee> empleados = new ArrayList<>();
-        
+
         try {
             empleados = consultaEmpleado.getResultList();
         } catch (Exception exception) {
@@ -357,15 +374,15 @@ public class EmployeeJpaController implements Serializable {
         }
         return empleados;
     }
-    
+
     public List<Employee> findEmployeeByName(String name) throws Exception {
         EntityManager em = getEntityManager();
-        
+
         TypedQuery<Employee> consultaEmpleado = em.createNamedQuery("Employee.findByName", Employee.class);
         consultaEmpleado.setParameter("name", name);
-        
+
         List<Employee> empleados = new ArrayList<>();
-        
+
         try {
             empleados = consultaEmpleado.getResultList();
         } catch (Exception exception) {
@@ -375,15 +392,15 @@ public class EmployeeJpaController implements Serializable {
         }
         return empleados;
     }
-    
+
     public List<Employee> findEmployeeByAddress(String address) throws Exception {
         EntityManager em = getEntityManager();
-        
+
         TypedQuery<Employee> consultaEmpleado = em.createNamedQuery("Employee.findByAddress", Employee.class);
         consultaEmpleado.setParameter("address", address);
-        
+
         List<Employee> empleados = new ArrayList<>();
-        
+
         try {
             empleados = consultaEmpleado.getResultList();
         } catch (Exception exception) {
@@ -393,15 +410,15 @@ public class EmployeeJpaController implements Serializable {
         }
         return empleados;
     }
-    
+
     public List<Employee> findEmployeeByDepartment(String department) throws Exception {
         EntityManager em = getEntityManager();
-        
+
         TypedQuery<Employee> consultaEmpleado = em.createNamedQuery("Employee.findByDepartment", Employee.class);
         consultaEmpleado.setParameter("department", department);
-        
+
         List<Employee> empleados = new ArrayList<>();
-        
+
         try {
             empleados = consultaEmpleado.getResultList();
         } catch (Exception exception) {
@@ -433,5 +450,5 @@ public class EmployeeJpaController implements Serializable {
             em.close();
         }
     }
-    
+
 }

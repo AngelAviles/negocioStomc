@@ -40,10 +40,10 @@ public class ProfileJpaController implements Serializable {
             em = getEntityManager();
             em.getTransaction().begin();
             Employee employee = profile.getEmployee();
-            if (employee != null) {
-                employee = em.getReference(employee.getClass(), employee.getId());
-                profile.setEmployee(employee);
-            }
+//            if (employee != null) {
+//                employee = em.getReference(employee.getClass(), employee.getId());
+//                profile.setEmployee(employee);
+//            }
             em.persist(profile);
             if (employee != null) {
                 Profile oldIdProfileOfEmployee = employee.getIdProfile();
