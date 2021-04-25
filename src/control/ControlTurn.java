@@ -5,6 +5,7 @@
  */
 package control;
 
+import dominio.Employee;
 import dominio.Turn;
 import java.util.Date;
 import java.util.List;
@@ -42,6 +43,10 @@ public class ControlTurn {
     public List<Turn> findTurnEntities(int maxResults, int firstResult) {
         return getJpa().findTurnEntities(maxResults, firstResult);
     }
+    
+    public List<Turn> findTurnByIdEmployee(Employee idEmployee) throws Exception {
+        return getJpa().findTurnByIdEmployee(idEmployee);
+    }
 
     public List<Turn> findTurnByDate(Date fechaInicio, Date fechaFin) throws Exception {
         return getJpa().findTurnByDate(fechaInicio, fechaFin);
@@ -58,7 +63,27 @@ public class ControlTurn {
     public List<Turn> findTurnByType(Turn.Type type) throws Exception {
         return getJpa().findTurnByType(type);
     }
+    
+    public List<Turn> Query_EntreFechasYEstado(String status, Date fechaInicio, Date fechaFin) throws Exception {
+        return getJpa().Query_EntreFechasYEstado(status, fechaInicio, fechaFin);
+    }
+    
+    public List<Turn> Query_FechaInicioYEstado(String status, Date fechaInicio) throws Exception {
+        return getJpa().Query_FechaInicioYEstado(status, fechaInicio);
+    }
 
+    public List<Turn> Query_FechaFinYEstado(String status, Date fechaFin) throws Exception {
+        return getJpa().Query_FechaFinYEstado(status, fechaFin);
+    }
+    
+    public List<Turn> Query_FechaInicio(Date fechaInicio) throws Exception {
+        return getJpa().Query_FechaInicio(fechaInicio);
+    }
+    
+    public List<Turn> Query_FechaFin(Date fechaFin) throws Exception {
+        return getJpa().Query_FechaFin(fechaFin);
+    }
+    
     public Turn findTurn(String id) {
         return findTurn(id);
     }

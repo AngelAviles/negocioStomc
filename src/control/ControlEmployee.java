@@ -26,7 +26,7 @@ public class ControlEmployee {
         getJpa().create(employee);
     }
 
-    public void edit(Employee employee) throws NonexistentEntityException, Exception {
+    public void edit(Employee employee) throws NonexistentEntityException, PreexistingEntityException, Exception {
         getJpa().edit(employee);
     }
 
@@ -56,6 +56,10 @@ public class ControlEmployee {
     
     public List<Employee> findEmployeeByDepartment(String department) throws Exception {
         return getJpa().findEmployeeByDepartment(department);
+    }
+    
+    public List<Employee> findEmployeeByAccount(String account) throws Exception {
+        return getJpa().findEmployeeByAccount(account);
     }
     
     public List<Employee> findEmployeeByaccountAndPassword(String account, String password) throws Exception {

@@ -17,6 +17,7 @@ import java.util.Date;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.TemporalType;
 import javax.persistence.TypedQuery;
 import negocio.exceptions.NonexistentEntityException;
 import negocio.exceptions.PreexistingEntityException;
@@ -156,8 +157,8 @@ public class TurnJpaController implements Serializable {
         EntityManager em = getEntityManager();
         
         TypedQuery<Turn> consultaTurno = em.createNamedQuery("Turn.findByDateTimeCreated", Turn.class);
-        consultaTurno.setParameter("fechaInicio", fechaInicio);
-        consultaTurno.setParameter("fechaFin", fechaFin);
+        consultaTurno.setParameter("fechaInicio", fechaInicio, TemporalType.TIMESTAMP);
+        consultaTurno.setParameter("fechaFin", fechaFin, TemporalType.TIMESTAMP);
         
         List<Turn> turnos = new ArrayList<>();
         
@@ -194,6 +195,24 @@ public class TurnJpaController implements Serializable {
         
         TypedQuery<Turn> consultaTurno = em.createNamedQuery("Turn.findByIsActive", Turn.class);
         consultaTurno.setParameter("isActive", isActive);
+        
+        List<Turn> turnos = new ArrayList<>();
+        
+        try {
+            turnos = consultaTurno.getResultList();
+        } catch (Exception exception) {
+            throw new Exception("Ocurrio un error.");
+        } finally {
+            em.close();
+        }
+        return turnos;
+    }
+    
+    public List<Turn> findTurnByIdEmployee(Employee idEmployee) throws Exception {
+        EntityManager em = getEntityManager();
+        
+        TypedQuery<Turn> consultaTurno = em.createNamedQuery("Turn.findByIdEmployee", Turn.class);
+        consultaTurno.setParameter("idEmployee", idEmployee);
         
         List<Turn> turnos = new ArrayList<>();
         
@@ -245,6 +264,100 @@ public class TurnJpaController implements Serializable {
         } finally {
             em.close();
         }
+    }
+    
+    public List<Turn> Query_EntreFechasYEstado(String status, Date fechaInicio, Date fechaFin) throws Exception {
+        EntityManager em = getEntityManager();
+        
+        TypedQuery<Turn> consultaTurno = em.createNamedQuery("Query_EntreFechasYEstado", Turn.class);
+        consultaTurno.setParameter("status", status);
+        consultaTurno.setParameter("fechaInicio", fechaInicio, TemporalType.TIMESTAMP);
+        consultaTurno.setParameter("fechaFin", fechaFin, TemporalType.TIMESTAMP);
+        
+        List<Turn> turnos = new ArrayList<>();
+        
+        try {
+            turnos = consultaTurno.getResultList();
+        } catch (Exception exception) {
+            throw new Exception("Ocurrio un error.");
+        } finally {
+            em.close();
+        }
+        return turnos;
+    }
+    
+    public List<Turn> Query_FechaInicioYEstado(String status, Date fechaInicio) throws Exception {
+        EntityManager em = getEntityManager();
+        
+        TypedQuery<Turn> consultaTurno = em.createNamedQuery("Query_FechaInicioYEstado", Turn.class);
+        consultaTurno.setParameter("status", status);
+        consultaTurno.setParameter("fechaInicio", fechaInicio, TemporalType.TIMESTAMP);
+        
+        List<Turn> turnos = new ArrayList<>();
+        
+        try {
+            turnos = consultaTurno.getResultList();
+        } catch (Exception exception) {
+            throw new Exception("Ocurrio un error.");
+        } finally {
+            em.close();
+        }
+        return turnos;
+    }
+    
+    public List<Turn> Query_FechaFinYEstado(String status, Date fechaFin) throws Exception {
+        EntityManager em = getEntityManager();
+        
+        TypedQuery<Turn> consultaTurno = em.createNamedQuery("Query_FechaFinYEstado", Turn.class);
+        consultaTurno.setParameter("status", status);
+        consultaTurno.setParameter("fechaFin", fechaFin, TemporalType.TIMESTAMP);
+        
+        List<Turn> turnos = new ArrayList<>();
+        
+        try {
+            turnos = consultaTurno.getResultList();
+        } catch (Exception exception) {
+            throw new Exception("Ocurrio un error.");
+        } finally {
+            em.close();
+        }
+        return turnos;
+    }
+    
+    public List<Turn> Query_FechaInicio(Date fechaInicio) throws Exception {
+        EntityManager em = getEntityManager();
+        
+        TypedQuery<Turn> consultaTurno = em.createNamedQuery("Query_FechaInicio", Turn.class);
+        consultaTurno.setParameter("fechaInicio", fechaInicio, TemporalType.TIMESTAMP);
+        
+        List<Turn> turnos = new ArrayList<>();
+        
+        try {
+            turnos = consultaTurno.getResultList();
+        } catch (Exception exception) {
+            throw new Exception("Ocurrio un error.");
+        } finally {
+            em.close();
+        }
+        return turnos;
+    }
+    
+    public List<Turn> Query_FechaFin(Date fechaFin) throws Exception {
+        EntityManager em = getEntityManager();
+        
+        TypedQuery<Turn> consultaTurno = em.createNamedQuery("Query_FechaFin", Turn.class);
+        consultaTurno.setParameter("fechaFin", fechaFin, TemporalType.TIMESTAMP);
+        
+        List<Turn> turnos = new ArrayList<>();
+        
+        try {
+            turnos = consultaTurno.getResultList();
+        } catch (Exception exception) {
+            throw new Exception("Ocurrio un error.");
+        } finally {
+            em.close();
+        }
+        return turnos;
     }
     
 }
