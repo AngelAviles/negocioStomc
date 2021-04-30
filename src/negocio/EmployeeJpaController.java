@@ -133,7 +133,7 @@ public class EmployeeJpaController implements Serializable {
         List<Employee> empleados = null;
 
         try {
-            empleados = findEmployeeByAccount(employee.getAccount());
+            empleados = findAccount_NotId(employee.getId(), employee.getAccount());
         } catch (Exception ex) {
             Logger.getLogger(EmployeeJpaController.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -339,6 +339,25 @@ public class EmployeeJpaController implements Serializable {
         TypedQuery<Employee> consultaEmpleado = em.createNamedQuery("Employee.comprobarValoresUnicos", Employee.class);
         consultaEmpleado.setParameter("account", account);
         consultaEmpleado.setParameter("noEmployee", noEmployee);
+
+        List<Employee> empleados = new ArrayList<>();
+
+        try {
+            empleados = consultaEmpleado.getResultList();
+        } catch (Exception exception) {
+            throw new Exception("Ocurrio un error.");
+        } finally {
+            em.close();
+        }
+        return empleados;
+    }
+    
+    public List<Employee> findAccount_NotId(Long id, String account) throws Exception {
+        EntityManager em = getEntityManager();
+
+        TypedQuery<Employee> consultaEmpleado = em.createNamedQuery("findAccount_NotId", Employee.class);
+        consultaEmpleado.setParameter("id", id);
+        consultaEmpleado.setParameter("account", account);
 
         List<Employee> empleados = new ArrayList<>();
 

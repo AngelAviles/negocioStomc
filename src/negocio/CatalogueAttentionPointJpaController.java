@@ -9,6 +9,8 @@ import dominio.CatalogueAttentionPoint;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Query;
@@ -17,6 +19,7 @@ import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import negocio.exceptions.NonexistentEntityException;
+import negocio.exceptions.PreexistingEntityException;
 
 /**
  *
@@ -33,40 +36,69 @@ public class CatalogueAttentionPointJpaController implements Serializable {
         return emf.createEntityManager();
     }
 
-    public void create(CatalogueAttentionPoint catalogueAttentionPoint) {
-        EntityManager em = null;
-        try {
-            em = getEntityManager();
-            em.getTransaction().begin();
-            em.persist(catalogueAttentionPoint);
-            em.getTransaction().commit();
-        } finally {
-            if (em != null) {
-                em.close();
-            }
-        }
-    }
+    public void create(CatalogueAttentionPoint catalogueAttentionPoint) throws PreexistingEntityException {
+        
+        List<CatalogueAttentionPoint> catalogueAttentionPoints = null;
 
-    public void edit(CatalogueAttentionPoint catalogueAttentionPoint) throws NonexistentEntityException, Exception {
-        EntityManager em = null;
         try {
-            em = getEntityManager();
-            em.getTransaction().begin();
-            catalogueAttentionPoint = em.merge(catalogueAttentionPoint);
-            em.getTransaction().commit();
+            catalogueAttentionPoints = findCatalogueAttentionPointByPoint(catalogueAttentionPoint.getPoint());
         } catch (Exception ex) {
-            String msg = ex.getLocalizedMessage();
-            if (msg == null || msg.length() == 0) {
-                Long id = catalogueAttentionPoint.getId();
-                if (findCatalogueAttentionPoint(id) == null) {
-                    throw new NonexistentEntityException("The catalogueAttentionPoint with id " + id + " no longer exists.");
+            Logger.getLogger(CatalogueAttentionPoint.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        if (catalogueAttentionPoints.isEmpty()) {
+        
+            EntityManager em = null;
+            try {
+                em = getEntityManager();
+                em.getTransaction().begin();
+                em.persist(catalogueAttentionPoint);
+                em.getTransaction().commit();
+            } finally {
+                if (em != null) {
+                    em.close();
                 }
             }
-            throw ex;
-        } finally {
-            if (em != null) {
-                em.close();
+        } else {
+            throw new PreexistingEntityException("Punto de Atención con datos repetidos.", catalogueAttentionPoints.get(0));
+        }
+    }
+    
+
+    public void edit(CatalogueAttentionPoint catalogueAttentionPoint) throws NonexistentEntityException, PreexistingEntityException, Exception {
+        
+        List<CatalogueAttentionPoint> catalogueAttentionPoints = null;
+
+        try {
+            catalogueAttentionPoints = findPoint_NotID(catalogueAttentionPoint.getId(), catalogueAttentionPoint.getPoint());
+        } catch (Exception ex) {
+            Logger.getLogger(CatalogueAttentionPoint.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        if (catalogueAttentionPoints.isEmpty()) {
+        
+            EntityManager em = null;
+            try {
+                em = getEntityManager();
+                em.getTransaction().begin();
+                catalogueAttentionPoint = em.merge(catalogueAttentionPoint);
+                em.getTransaction().commit();
+            } catch (Exception ex) {
+                String msg = ex.getLocalizedMessage();
+                if (msg == null || msg.length() == 0) {
+                    Long id = catalogueAttentionPoint.getId();
+                    if (findCatalogueAttentionPoint(id) == null) {
+                        throw new NonexistentEntityException("The catalogueAttentionPoint with id " + id + " no longer exists.");
+                    }
+                }
+                throw ex;
+            } finally {
+                if (em != null) {
+                    em.close();
+                }
             }
+        } else {
+            throw new PreexistingEntityException("Punto de Atención con datos repetidos.", catalogueAttentionPoints.get(0));
         }
     }
 
@@ -137,6 +169,25 @@ public class CatalogueAttentionPointJpaController implements Serializable {
         EntityManager em = getEntityManager();
         
         TypedQuery<CatalogueAttentionPoint> consultaPuntosDeAtencion = em.createNamedQuery("CatalogueAttentionPoint.findByPoint", CatalogueAttentionPoint.class);
+        consultaPuntosDeAtencion.setParameter("point", point);
+        
+        List<CatalogueAttentionPoint> puntosDeAtencion = new ArrayList<>();
+        
+        try {
+            puntosDeAtencion = consultaPuntosDeAtencion.getResultList();
+        } catch (Exception exception) {
+            throw new Exception("Ocurrio un error.");
+        } finally {
+            em.close();
+        }
+        return puntosDeAtencion;
+    }
+    
+    public List<CatalogueAttentionPoint> findPoint_NotID(Long id, String point) throws Exception {
+        EntityManager em = getEntityManager();
+        
+        TypedQuery<CatalogueAttentionPoint> consultaPuntosDeAtencion = em.createNamedQuery("FindPoint_NotID", CatalogueAttentionPoint.class);
+        consultaPuntosDeAtencion.setParameter("id", id);
         consultaPuntosDeAtencion.setParameter("point", point);
         
         List<CatalogueAttentionPoint> puntosDeAtencion = new ArrayList<>();

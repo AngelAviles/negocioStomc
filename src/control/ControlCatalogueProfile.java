@@ -10,6 +10,7 @@ import java.util.List;
 import negocio.CatalogueProfileJpaController;
 import negocio.EntityManagerFactoryBase;
 import negocio.exceptions.NonexistentEntityException;
+import negocio.exceptions.PreexistingEntityException;
 
 /**
  *
@@ -21,11 +22,11 @@ public class ControlCatalogueProfile {
         return new CatalogueProfileJpaController(EntityManagerFactoryBase.getInstance().getEmf());
     }
 
-    public void create(CatalogueProfile catalogueProfile) {
+    public void create(CatalogueProfile catalogueProfile) throws PreexistingEntityException {
         getJpa().create(catalogueProfile);
     }
 
-    public void edit(CatalogueProfile catalogueProfile) throws NonexistentEntityException, Exception {
+    public void edit(CatalogueProfile catalogueProfile) throws NonexistentEntityException, PreexistingEntityException, Exception {
         getJpa().edit(catalogueProfile);
     }
 

@@ -9,6 +9,8 @@ import dominio.CatalogueProfile;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Query;
@@ -17,6 +19,7 @@ import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import negocio.exceptions.NonexistentEntityException;
+import negocio.exceptions.PreexistingEntityException;
 
 /**
  *
@@ -33,40 +36,69 @@ public class CatalogueProfileJpaController implements Serializable {
         return emf.createEntityManager();
     }
 
-    public void create(CatalogueProfile catalogueProfile) {
-        EntityManager em = null;
+    public void create(CatalogueProfile catalogueProfile) throws PreexistingEntityException {
+        
+        List<CatalogueProfile> catalogueProfiles = null;
+
         try {
-            em = getEntityManager();
-            em.getTransaction().begin();
-            em.persist(catalogueProfile);
-            em.getTransaction().commit();
-        } finally {
-            if (em != null) {
-                em.close();
+            catalogueProfiles = findCatalogueProfileByProfileName(catalogueProfile.getProfileName());
+        } catch (Exception ex) {
+            Logger.getLogger(CatalogueProfile.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        if (catalogueProfiles.isEmpty()) {
+            
+            EntityManager em = null;
+            try {
+                em = getEntityManager();
+                em.getTransaction().begin();
+                em.persist(catalogueProfile);
+                em.getTransaction().commit();
+            } finally {
+                if (em != null) {
+                    em.close();
+                }
             }
+        
+        } else {
+            throw new PreexistingEntityException("Perfil con datos repetidos.", catalogueProfiles.get(0));
         }
     }
 
-    public void edit(CatalogueProfile catalogueProfile) throws NonexistentEntityException, Exception {
-        EntityManager em = null;
+    public void edit(CatalogueProfile catalogueProfile) throws NonexistentEntityException, PreexistingEntityException, Exception {
+        
+        List<CatalogueProfile> catalogueProfiles = null;
+
         try {
-            em = getEntityManager();
-            em.getTransaction().begin();
-            catalogueProfile = em.merge(catalogueProfile);
-            em.getTransaction().commit();
+            catalogueProfiles = findByProfileName_NotId(catalogueProfile.getId(), catalogueProfile.getProfileName());
         } catch (Exception ex) {
-            String msg = ex.getLocalizedMessage();
-            if (msg == null || msg.length() == 0) {
-                Long id = catalogueProfile.getId();
-                if (findCatalogueProfile(id) == null) {
-                    throw new NonexistentEntityException("The catalogueProfile with id " + id + " no longer exists.");
+            Logger.getLogger(CatalogueProfile.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        if (catalogueProfiles.isEmpty()) {
+        
+            EntityManager em = null;
+            try {
+                em = getEntityManager();
+                em.getTransaction().begin();
+                catalogueProfile = em.merge(catalogueProfile);
+                em.getTransaction().commit();
+            } catch (Exception ex) {
+                String msg = ex.getLocalizedMessage();
+                if (msg == null || msg.length() == 0) {
+                    Long id = catalogueProfile.getId();
+                    if (findCatalogueProfile(id) == null) {
+                        throw new NonexistentEntityException("The catalogueProfile with id " + id + " no longer exists.");
+                    }
+                }
+                throw ex;
+            } finally {
+                if (em != null) {
+                    em.close();
                 }
             }
-            throw ex;
-        } finally {
-            if (em != null) {
-                em.close();
-            }
+        } else {
+            throw new PreexistingEntityException("Perfil con datos repetidos.", catalogueProfiles.get(0));
         }
     }
 
@@ -137,6 +169,25 @@ public class CatalogueProfileJpaController implements Serializable {
         EntityManager em = getEntityManager();
         
         TypedQuery<CatalogueProfile> consultaPerfil = em.createNamedQuery("CatalogueProfile.findByProfileName", CatalogueProfile.class);
+        consultaPerfil.setParameter("profileName", profileName);
+        
+        List<CatalogueProfile> perfiles = new ArrayList<>();
+        
+        try {
+            perfiles = consultaPerfil.getResultList();
+        } catch (Exception exception) {
+            throw new Exception("Ocurrio un error.");
+        } finally {
+            em.close();
+        }
+        return perfiles;
+    }
+    
+    public List<CatalogueProfile> findByProfileName_NotId(Long id, String profileName) throws Exception {
+        EntityManager em = getEntityManager();
+        
+        TypedQuery<CatalogueProfile> consultaPerfil = em.createNamedQuery("FindByProfileName_NotId", CatalogueProfile.class);
+        consultaPerfil.setParameter("id", id);
         consultaPerfil.setParameter("profileName", profileName);
         
         List<CatalogueProfile> perfiles = new ArrayList<>();

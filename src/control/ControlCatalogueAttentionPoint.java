@@ -10,6 +10,7 @@ import java.util.List;
 import negocio.CatalogueAttentionPointJpaController;
 import negocio.EntityManagerFactoryBase;
 import negocio.exceptions.NonexistentEntityException;
+import negocio.exceptions.PreexistingEntityException;
 
 /**
  *
@@ -21,11 +22,11 @@ public class ControlCatalogueAttentionPoint {
         return new CatalogueAttentionPointJpaController(EntityManagerFactoryBase.getInstance().getEmf());
     }
     
-    public void create(CatalogueAttentionPoint catalogueAttentionPoint) {
+    public void create(CatalogueAttentionPoint catalogueAttentionPoint) throws PreexistingEntityException {
         getJpa().create(catalogueAttentionPoint);
     }
     
-    public void edit(CatalogueAttentionPoint catalogueAttentionPoint) throws NonexistentEntityException, Exception {
+    public void edit(CatalogueAttentionPoint catalogueAttentionPoint) throws NonexistentEntityException, PreexistingEntityException, Exception {
         getJpa().edit(catalogueAttentionPoint);
     }
     

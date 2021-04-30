@@ -9,6 +9,8 @@ import dominio.CatalogueBranch;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Query;
@@ -17,6 +19,7 @@ import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import negocio.exceptions.NonexistentEntityException;
+import negocio.exceptions.PreexistingEntityException;
 
 /**
  *
@@ -33,40 +36,69 @@ public class CatalogueBranchJpaController implements Serializable {
         return emf.createEntityManager();
     }
 
-    public void create(CatalogueBranch catalogueBranch) {
-        EntityManager em = null;
+    public void create(CatalogueBranch catalogueBranch) throws PreexistingEntityException {
+        
+        List<CatalogueBranch> catalogueBranchs = null;
+
         try {
-            em = getEntityManager();
-            em.getTransaction().begin();
-            em.persist(catalogueBranch);
-            em.getTransaction().commit();
-        } finally {
-            if (em != null) {
-                em.close();
+            catalogueBranchs = findCatalogueBranchByBranchName(catalogueBranch.getBranchName());
+        } catch (Exception ex) {
+            Logger.getLogger(CatalogueBranch.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        if (catalogueBranchs.isEmpty()) {
+        
+            EntityManager em = null;
+            try {
+                em = getEntityManager();
+                em.getTransaction().begin();
+                em.persist(catalogueBranch);
+                em.getTransaction().commit();
+            } finally {
+                if (em != null) {
+                    em.close();
+                }
             }
+            
+        } else {
+            throw new PreexistingEntityException("Sucursal con datos repetidos.", catalogueBranchs.get(0));
         }
     }
 
-    public void edit(CatalogueBranch catalogueBranch) throws NonexistentEntityException, Exception {
-        EntityManager em = null;
+    public void edit(CatalogueBranch catalogueBranch) throws NonexistentEntityException, PreexistingEntityException, Exception {
+        
+        List<CatalogueBranch> catalogueBranchs = null;
+
         try {
-            em = getEntityManager();
-            em.getTransaction().begin();
-            catalogueBranch = em.merge(catalogueBranch);
-            em.getTransaction().commit();
+            catalogueBranchs = findBranchName_NotId(catalogueBranch.getId(), catalogueBranch.getBranchName());
         } catch (Exception ex) {
-            String msg = ex.getLocalizedMessage();
-            if (msg == null || msg.length() == 0) {
-                Long id = catalogueBranch.getId();
-                if (findCatalogueBranch(id) == null) {
-                    throw new NonexistentEntityException("The catalogueBranch with id " + id + " no longer exists.");
+            Logger.getLogger(CatalogueBranch.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        if (catalogueBranchs.isEmpty()) {
+        
+            EntityManager em = null;
+            try {
+                em = getEntityManager();
+                em.getTransaction().begin();
+                catalogueBranch = em.merge(catalogueBranch);
+                em.getTransaction().commit();
+            } catch (Exception ex) {
+                String msg = ex.getLocalizedMessage();
+                if (msg == null || msg.length() == 0) {
+                    Long id = catalogueBranch.getId();
+                    if (findCatalogueBranch(id) == null) {
+                        throw new NonexistentEntityException("The catalogueBranch with id " + id + " no longer exists.");
+                    }
+                }
+                throw ex;
+            } finally {
+                if (em != null) {
+                    em.close();
                 }
             }
-            throw ex;
-        } finally {
-            if (em != null) {
-                em.close();
-            }
+        } else {
+            throw new PreexistingEntityException("Punto de Atención con datos repetidos.", catalogueBranchs.get(0));
         }
     }
 
@@ -137,6 +169,25 @@ public class CatalogueBranchJpaController implements Serializable {
         EntityManager em = getEntityManager();
         
         TypedQuery<CatalogueBranch> consultaSucursal = em.createNamedQuery("CatalogueBranch.findByBranchName", CatalogueBranch.class);
+        consultaSucursal.setParameter("branchName", branchName);
+        
+        List<CatalogueBranch> sucursales = new ArrayList<>();
+        
+        try {
+            sucursales = consultaSucursal.getResultList();
+        } catch (Exception exception) {
+            throw new Exception("Ocurrio un error.");
+        } finally {
+            em.close();
+        }
+        return sucursales;
+    }
+    
+    public List<CatalogueBranch> findBranchName_NotId(Long id, String branchName) throws Exception {
+        EntityManager em = getEntityManager();
+        
+        TypedQuery<CatalogueBranch> consultaSucursal = em.createNamedQuery("FindBranchName_NotId", CatalogueBranch.class);
+        consultaSucursal.setParameter("id", id);
         consultaSucursal.setParameter("branchName", branchName);
         
         List<CatalogueBranch> sucursales = new ArrayList<>();
