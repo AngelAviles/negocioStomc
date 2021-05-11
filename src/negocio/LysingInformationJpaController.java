@@ -133,6 +133,24 @@ public class LysingInformationJpaController implements Serializable {
         return lysingInformations;
     }
     
+    public List<LysingInformation> findLysingInformationByTitle(String title) throws Exception {
+        EntityManager em = getEntityManager();
+        
+        TypedQuery<LysingInformation> consultaLysingInformation = em.createNamedQuery("LysingInformation.findByTitle", LysingInformation.class);
+        consultaLysingInformation.setParameter("title", title);
+        
+        List<LysingInformation> lysingInformations = new ArrayList<>();
+        
+        try {
+            lysingInformations = consultaLysingInformation.getResultList();
+        } catch (Exception exception) {
+            throw new Exception("Ocurrio un error.");
+        } finally {
+            em.close();
+        }
+        return lysingInformations;
+    }
+    
     public List<LysingInformation> findLysingInformationByProcess(String process) throws Exception {
         EntityManager em = getEntityManager();
         
