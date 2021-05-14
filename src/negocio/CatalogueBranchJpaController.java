@@ -183,6 +183,24 @@ public class CatalogueBranchJpaController implements Serializable {
         return sucursales;
     }
     
+    public List<CatalogueBranch> findCatalogueBranchByAddress(String address) throws Exception {
+        EntityManager em = getEntityManager();
+        
+        TypedQuery<CatalogueBranch> consultaSucursal = em.createNamedQuery("CatalogueBranch.findByAddress", CatalogueBranch.class);
+        consultaSucursal.setParameter("address", address);
+        
+        List<CatalogueBranch> sucursales = new ArrayList<>();
+        
+        try {
+            sucursales = consultaSucursal.getResultList();
+        } catch (Exception exception) {
+            throw new Exception("Ocurrio un error.");
+        } finally {
+            em.close();
+        }
+        return sucursales;
+    }
+    
     public List<CatalogueBranch> findBranchName_NotId(Long id, String branchName) throws Exception {
         EntityManager em = getEntityManager();
         

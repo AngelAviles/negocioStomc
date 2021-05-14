@@ -45,6 +45,10 @@ public class ControlBranch {
         return getJpa().findBranchByBranchName(branchName);
     }
     
+    public List<Branch> findBranchByAddress(String address) throws Exception {
+        return getJpa().findBranchByAddress(address);
+    }
+    
     public List<Branch> findBranchEntities() {
         return getJpa().findBranchEntities();
     }

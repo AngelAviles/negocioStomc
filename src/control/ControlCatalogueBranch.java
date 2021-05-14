@@ -46,6 +46,10 @@ public class ControlCatalogueBranch {
         return getJpa().findCatalogueBranchByBranchName(branchName);
     }
     
+    public List<CatalogueBranch> findCatalogueBranchByAddress(String address) throws Exception {
+        return getJpa().findCatalogueBranchByAddress(address);
+    }
+    
     public List<CatalogueBranch> findCatalogueBranchEntities() {
         return getJpa().findCatalogueBranchEntities();
     }

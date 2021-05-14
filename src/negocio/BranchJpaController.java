@@ -190,6 +190,24 @@ public class BranchJpaController implements Serializable {
         }
         return sucursales;
     }
+    
+    public List<Branch> findBranchByAddress(String address) throws Exception {
+        EntityManager em = getEntityManager();
+        
+        TypedQuery<Branch> consultaSucursal = em.createNamedQuery("Branch.findByAddress", Branch.class);
+        consultaSucursal.setParameter("address", address);
+        
+        List<Branch> sucursales = new ArrayList<>();
+        
+        try {
+            sucursales = consultaSucursal.getResultList();
+        } catch (Exception exception) {
+            throw new Exception("Ocurrio un error.");
+        } finally {
+            em.close();
+        }
+        return sucursales;
+    }
 
     public Branch findBranch(Long id) {
         EntityManager em = getEntityManager();
